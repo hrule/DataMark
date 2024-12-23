@@ -18,6 +18,7 @@ const initialState: State = {
     panMoveY: 0, 
 
     mouseDown: false,
+    mouseUp: false,
     currentMode: Mode.Pan,
 
     upArrowPressed: false,

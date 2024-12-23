@@ -65,6 +65,8 @@ type State = Readonly<{
     panMoveY: number, 
     
     mouseDown: boolean,
+    mouseUp: boolean, 
+
     currentMode: Mode,
 
     upArrowPressed: boolean,
@@ -75,6 +77,7 @@ const resetState = (s: State):State => {
     return ({
         ...s,
         renderRectangle: false, 
+        mouseUp: false,
         upArrowPressed: false,
         downArrowPressed: false
     })
@@ -134,6 +137,7 @@ class MouseUp implements Action {
             rectEndX: this.x,
             rectEndY: this.y,
             mouseDown: false,
+            mouseUp: true,
             renderRectangle: true,
         }
     }
