@@ -20,16 +20,16 @@ const Labels:React.FC<LabelsProps> = ({
     };
   
     return (
-      <div className="p-4 bg-gray-600 rounded-md">
+      <div className="p-4 h-full bg-gray-800 rounded-md flex flex-col">
         <h2 className="text-white font-bold mb-2">Labels</h2>
   
         {labels.length > 0 ? (
-          <ul className="mb-4">
+          <ul className="mb-4 overflow-y-auto hide-scrollbar">
             {labels.map((label, index) => (
               <li
                 key={index}
-                className={`p-2 rounded cursor-pointer ${
-                  selectedLabel === label ? "bg-blue-500 text-white" : "bg-gray-800 text-white"
+                className={`p-2 mb-2 rounded cursor-pointer text-white ${
+                  selectedLabel === label ? "bg-green-500" : "bg-gray-600"
                 }`}
                 onClick={() => setSelectedLabel(label)}
               >
@@ -38,15 +38,15 @@ const Labels:React.FC<LabelsProps> = ({
             ))}
           </ul>
         ) : (
-          <p className="text-gray-400 mb-4">No labels available. Add a new one below.</p>
+          <p className="text-gray-400 mb-4">No labels. Add one and click on it to select it and start annotating.</p>
         )}
-  
+
         <input
           type="text"
           placeholder="Add new label"
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
-          className="w-full p-2 mb-2 rounded bg-gray-800 text-white"
+          className="w-full p-2 mb-2 rounded bg-gray-600 text-white"
         />
         
         <button

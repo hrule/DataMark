@@ -33,22 +33,21 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
   };
 
   const handleImageClick = (image: ImageFile, index: number) => {
-    console.log("set image index to", index)
     setSelectedImageInfo({image: image, imageIndex: index})
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 h-full">
       <input
         type="file"
         multiple
         accept="image/*"
         onChange={handleFileInput}
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        className="image-input"
       />
-      <div className="flex gap-8 mt-6">
-        <div className="w-1/3">
-            <ul className="space-y-4">
+      <div className="flex gap-8 max-h-full">
+        <div className="w-full h-full">
+            <ul className="space-y-4 max-h-[calc(100%-64px)] overflow-y-auto bg-gray-800 rounded-md p-4 hide-scrollbar">
                 {images.map((image, index) => (
                 <li
                     key={index}
@@ -65,8 +64,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
                 ))}
             </ul>
         </div>
-        </div>
       </div>
+    </div>
   );
 };
 

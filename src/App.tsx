@@ -12,6 +12,7 @@ import { Action, Annotation, FabricMouseEvent, ImageFile, Key, Event, Mode, Mous
 import { initialState } from "./state"
 import { createFabricEventObservable, handleDrawMode, handlePanMode } from "./util"
 import SideBar from "./components/SideBar"
+import Export from "./components/Export"
 
 function App() {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
@@ -35,6 +36,7 @@ function App() {
   useEffect(() => {
     const fabricCanvas = initCanvas('canvas')
     fabricCanvasRef.current = fabricCanvas
+
     const canvasContainer = document.querySelector("#canvasContainer") as HTMLDivElement
     resizeCanvas(fabricCanvasRef.current, canvasContainer)
 
@@ -92,7 +94,7 @@ function App() {
     const source$:Observable<State> = action$.pipe(scan(reduceState, initialState))
 
     const subscription = source$.subscribe((s) => {
-      if (fabricCanvasRef.current) {
+      if (fabricCanvasRef.current && selectedLabelRef.current) {
         switch (s.currentMode){
           case Mode.Draw:
             handleDrawMode(
@@ -172,32 +174,40 @@ function App() {
   return (
     <div className="h-screen w-screen">
       <div className="flex h-full w-full">
-        <div className="w-64 h-full bg-gray-600">
+        <div className="w-1/6 h-full bg-gray-600">
           <ImageGallery 
             images={images}
             setImages={setImages}
             setAnnotations={setAnnotations}
             setSelectedImageInfo={setSelectedImageInfo}
-            />
-          <Labels 
-            selectedLabel={selectedLabel} 
-            setSelectedLabel={setSelectedLabel} 
           />
         </div>
         <SideBar/>
+
         <div className="w-3/4 h-full bg-gray-900" id="canvasContainer">
           <canvas className="w-full h-full" id="canvas"></canvas>
         </div>
+
         <div className="w-1/4 h-full bg-gray-800">
-          <div className="w-full h-1/3 bg-gray-800 border-4 border-cyan-100">
+          <div className="right-side-panel">
+            <Labels 
+              selectedLabel={selectedLabel} 
+              setSelectedLabel={setSelectedLabel} 
+            />
+          </div>
+          <div className="right-side-panel">
             <ImageAnnotation 
               annotations={annotations}
               images={images}
               selectedImageInfo={selectedImageInfo}
               />
           </div>
-          <div className="w-full h-1/3 bg-gray-800 border-4 border-cyan-100"></div>
-          <div className="w-full h-1/3 bg-gray-800 border-4 border-cyan-100"></div>
+          <div className="right-side-panel">
+            <Export
+              annotations={annotations}
+            />
+
+          </div>
         </div>
       </div>
     </div>

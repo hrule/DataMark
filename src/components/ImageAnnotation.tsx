@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Annotation, ImageFile, SelectedImage } from "../types";
 
 interface ImageAnnotationProps {
@@ -14,10 +14,6 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
 }) => {
   const [exportFormat, setExportFormat] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false); 
-
-  useEffect(() => {
-    console.log(annotations, images, selectedImageInfo?.imageIndex);
-  }, [annotations]);
 
   const handleExport = () => {
     const format = exportFormat || "yolov5"; 
@@ -35,13 +31,15 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const formatAnnotation = (annotation: Annotation) => {
+    return `${annotation.label} ${annotation.left} ${annotation.top} ${annotation.width} ${annotation.height}`
+  }
+
   const convertAnnotationsToFormat = (annotations: Annotation[][], format: string) => {
     if (format === "yolov5" || format === "yolov7" || format === "yolov8") {
       return annotations
-        .flatMap((imageAnnotations, imageIndex) =>
-          imageAnnotations.map((annotation) =>
-            `${images[imageIndex].name} ${annotation.label} ${annotation.left} ${annotation.top} ${annotation.width} ${annotation.height}`
-          )
+        .flatMap((imageAnnotations) =>
+          imageAnnotations.map(formatAnnotation)
         )
         .join("\n");
     }

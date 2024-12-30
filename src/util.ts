@@ -3,7 +3,7 @@ import { Annotation, Rectangle, SelectedImage, State } from "./types";
 import { fabric } from 'fabric'
 import { createRectangle } from "./view";
 
-export { createFabricEventObservable, handlePanMode, handleDrawMode, coordinatemporaryoScaled, scaledToCoordinates }
+export { createFabricEventObservable, handlePanMode, handleDrawMode, coordinateToScaled, scaledToCoordinates }
 
 const createFabricEventObservable = (fabricCanvas: fabric.Canvas, eventName: string) => {
   return fromEventPattern(
@@ -111,7 +111,7 @@ const handleDrawMode = (
     
     if (selectedFabricImage && selectedImageInfo){
       const fabricImage = selectedFabricImage
-      const scaledRect = coordinatemporaryoScaled(fabricImage, rectangleToRender)
+      const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
 
       const newAnnotation: Annotation = {
         ...scaledRect,
@@ -134,6 +134,7 @@ const handleDrawMode = (
 
 const handlePanMode = (state: State, fabricCanvas: fabric.Canvas) => {
   fabricCanvas.setCursor('grab')
+  removeLinesFromCanvas(fabricCanvas)
   if (state.mouseDown) {
     fabricCanvas.setCursor('grabbing'); 
     fabricCanvas.relativePan(new fabric.Point(state.panMoveX, state.panMoveY));
@@ -141,7 +142,7 @@ const handlePanMode = (state: State, fabricCanvas: fabric.Canvas) => {
   fabricCanvas.requestRenderAll();
 }
 
-const coordinatemporaryoScaled = (
+const coordinateToScaled = (
   img: fabric.Image, 
   rect: Rectangle,
 ): Rectangle => {
