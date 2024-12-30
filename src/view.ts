@@ -1,7 +1,7 @@
 import { fabric } from 'fabric'
 import { Annotation, ImageFile, Rectangle, UNSELECTABLE_IMAGE_PROPS } from './types'
 import { scaledToCoordinates } from './util'
-export { setBackground, initCanvas, resizeCanvas, clearCanvas, createRectangle, createRectangleFromAnnotation, addImage }
+export { setBackground, initCanvas, resizeCanvas, clearCanvas, createRectangle, createCustomRectangle, createRectangleFromAnnotation, addImage }
 
 const setBackground = (url: string, canvas: fabric.Canvas) => {
     fabric.Image.fromURL(url, (img) => {
@@ -36,6 +36,21 @@ const createRectangle = (canvas: fabric.Canvas, rect: Rectangle) => {
   const fabricRect = new fabric.Rect({
       ...rect,
       fill: "green",
+      borderColor: "red", 
+      opacity: 0.2, 
+      hasRotatingPoint: false,
+      lockRotation: true,
+      hasControls: false,
+      selectable: false,
+  })
+  canvas.add(fabricRect)
+  canvas.requestRenderAll()
+}
+
+const createCustomRectangle = (canvas: fabric.Canvas, rect: Rectangle, fill: string) => {
+  const fabricRect = new fabric.Rect({
+      ...rect,
+      fill: fill,
       borderColor: "red", 
       opacity: 0.2, 
       hasRotatingPoint: false,

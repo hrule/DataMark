@@ -1,7 +1,7 @@
 import { fromEventPattern } from "rxjs";
 import { Annotation, Rectangle, SelectedImage, State } from "./types";
 import { fabric } from 'fabric'
-import { createRectangle } from "./view";
+import { createCustomRectangle, createRectangle } from "./view";
 
 export { createFabricEventObservable, handlePanMode, handleDrawMode, coordinateToScaled, scaledToCoordinates }
 
@@ -28,17 +28,42 @@ const addDottedLine = (canvas: fabric.Canvas, points: number[]) => {
   canvas.add(new fabric.Line(points, DOTTED_LINE_PROPS))
 }
 
-const addXLine = (canvas: fabric.Canvas, x: number) => 
-  addDottedLine(canvas, [x, 0, x, canvas.getHeight()])
+const addXLine = (canvas: fabric.Canvas, x: number) => {
+  const panOffset = getPanOffset(canvas);
+  const adjustedX = x - panOffset.x; // Adjust for pan
+  addDottedLine(canvas, [adjustedX, 0, adjustedX, canvas.getHeight()]);
+};
 
-const addYLine = (canvas: fabric.Canvas, y: number) => 
-  addDottedLine(canvas, [0, y, canvas.getWidth(), y])
+const addYLine = (canvas: fabric.Canvas, y: number) => {
+  const panOffset = getPanOffset(canvas);
+  const adjustedY = y - panOffset.y; // Adjust for pan
+  addDottedLine(canvas, [0, adjustedY, canvas.getWidth(), adjustedY]);
+};
+
+const getPanOffset = (canvas: fabric.Canvas) => {
+  const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+  return {
+    x: transform[4],
+    y: transform[5],
+  };
+};
 
 const dimCanvas = (canvas: fabric.Canvas, x1: number, y1: number, x2: number, y2: number) => {
-  const left = Math.min(x1, x2);  
-  const top = Math.min(y1, y2);   
-  const width = Math.max(x1, x2) - left; 
-  const height = Math.max(y1, y2) - top; 
+  const panOffset = getPanOffset(canvas);
+
+  // Adjust mouse coordinates (x2, y2) by pan offset
+  const adjustedX2 = x2 - panOffset.x;
+  const adjustedY2 = y2 - panOffset.y;
+
+  // const left = Math.min(x1, x2);  
+  // const top = Math.min(y1, y2);   
+  // const width = Math.max(x1, x2) - left; 
+  // const height = Math.max(y1, y2) - top; 
+
+  const left = Math.min(x1, adjustedX2);  
+  const top = Math.min(y1, adjustedY2);   
+  const width = Math.max(x1, adjustedX2) - left; 
+  const height = Math.max(y1, adjustedY2) - top; 
 
   const dimRect = new fabric.Rect({
     name: 'temporary',
