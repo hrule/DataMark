@@ -29,7 +29,6 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
     setImages(imageList);
     setAnnotations(Array.from({ length: imageList.length }, () => []))
     setSelectedImageInfo(null);
-    
   };
 
   const handleImageClick = (image: ImageFile, index: number) => {
