@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Annotation } from "../types";
+import ExportButton from "./ExportButton";
 
 interface ExportProps {
     annotations: Annotation[][];
@@ -28,7 +29,7 @@ const Export: React.FC<ExportProps> = ({
 
     const formatAnnotation = (annotation: Annotation) => {
         return `${annotation.label} ${annotation.left} ${annotation.top} ${annotation.width} ${annotation.height}`
-      }
+    }
     
     const convertAnnotationsToFormat = (annotations: Annotation[][], format: string) => {
     if (format === "yolov5" || format === "yolov7" || format === "yolov8") {
@@ -46,17 +47,12 @@ const Export: React.FC<ExportProps> = ({
         <h3 className="text-lg font-bold mb-2">Select Export Format</h3>
         <div className="space-y-2">
             {["yolov5", "yolov7", "yolov8"].map((format) => (
-            <button
-                key={format}
-                className="w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
-                onClick={() => {
+                <ExportButton format={format} onClick={() => {
                     setExportFormat(format);
                     handleExport();
-                }}
-            >
-                {format.toUpperCase()}
-            </button>
-            ))}
+                }}/>
+                ))
+            }
         </div>
         </div>
     );

@@ -206,7 +206,6 @@ function App() {
             <Export
               annotations={annotations}
             />
-
           </div>
         </div>
       </div>

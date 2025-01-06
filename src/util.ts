@@ -1,7 +1,7 @@
 import { fromEventPattern } from "rxjs";
 import { Annotation, Rectangle, SelectedImage, State } from "./types";
 import { fabric } from 'fabric'
-import { createCustomRectangle, createRectangle } from "./view";
+import { createRectangle } from "./view";
 
 export { createFabricEventObservable, handlePanMode, handleDrawMode, coordinateToScaled, scaledToCoordinates }
 
