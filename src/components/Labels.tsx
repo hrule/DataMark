@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 
 interface LabelsProps {
-  selectedLabel: string,
-  setSelectedLabel: React.Dispatch<React.SetStateAction<string>>;
+  labels: string[],
+  setLabels: React.Dispatch<React.SetStateAction<string[]>>,
+  selectedLabelIndex: number | null,
+  setSelectedLabelIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const Labels:React.FC<LabelsProps> = ({
-    selectedLabel,
-    setSelectedLabel
+  labels,
+  setLabels,
+  selectedLabelIndex,
+  setSelectedLabelIndex
 }) => {
-    const [labels, setLabels] = useState<string[]>([]);
+    
     const [newLabel, setNewLabel] = useState<string>("");
   
     const addLabel = () => {
@@ -29,9 +33,9 @@ const Labels:React.FC<LabelsProps> = ({
               <li
                 key={index}
                 className={`p-2 mb-2 rounded cursor-pointer text-white ${
-                  selectedLabel === label ? "bg-green-500" : "bg-gray-600"
+                  selectedLabelIndex === index ? "bg-green-500" : "bg-gray-600"
                 }`}
-                onClick={() => setSelectedLabel(label)}
+                onClick={() => setSelectedLabelIndex(index)}
               >
                 {label}
               </li>

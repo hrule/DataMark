@@ -13,6 +13,7 @@ import { initialState } from "./state"
 import { createFabricEventObservable, handleDrawMode, handlePanMode } from "./util"
 import SideBar from "./components/SideBar"
 import Export from "./components/Export"
+import SelectLabelPopup from "./components/SelectLabelPopup"
 
 function App() {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
@@ -21,8 +22,10 @@ function App() {
   const [images, setImages] = useState<ImageFile[]>([])
   const imagesRef = useRef<ImageFile[]>(images)
 
-  const [selectedLabel, setSelectedLabel] = useState<string>("");
-  const selectedLabelRef = useRef<string>(selectedLabel)
+  const [labels, setLabels] = useState<string[]>([]);
+
+  const [selectedLabelIndex, setSelectedLabelIndex] = useState<number | null>(null);
+  const selectedLabelIndexRef = useRef<number | null>(selectedLabelIndex)
 
   const [annotations, setAnnotations] = useState<Annotation[][]>([])
   const annotationsRef = useRef<Annotation[][]>(annotations)
@@ -94,7 +97,7 @@ function App() {
     const source$:Observable<State> = action$.pipe(scan(reduceState, initialState))
 
     const subscription = source$.subscribe((s) => {
-      if (fabricCanvasRef.current && selectedLabelRef.current) {
+      if (fabricCanvasRef.current && selectedLabelIndexRef.current !== null) {
         switch (s.currentMode){
           case Mode.Draw:
             handleDrawMode(
@@ -102,7 +105,7 @@ function App() {
               fabricCanvasRef.current,
               selectedFabricImageRef.current,
               selectedImageInfoRef.current,
-              selectedLabelRef.current,
+              selectedLabelIndexRef.current,
               setAnnotations,
             )
             break
@@ -160,8 +163,8 @@ function App() {
   }, [annotations]);
 
   useEffect(() => {
-    selectedLabelRef.current = selectedLabel;
-  }, [selectedLabel]);
+    selectedLabelIndexRef.current = selectedLabelIndex;
+  }, [selectedLabelIndex]);
 
   useEffect(() => {
     imagesRef.current = images
@@ -173,7 +176,9 @@ function App() {
 
   return (
     <div className="h-screen w-screen">
+      {selectedLabelIndex === null ? <SelectLabelPopup/> : <></>}
       <div className="flex h-full w-full">
+        {/* Image Panel */}
         <div className="w-1/6 h-full bg-gray-600">
           <ImageGallery 
             images={images}
@@ -182,17 +187,20 @@ function App() {
             setSelectedImageInfo={setSelectedImageInfo}
           />
         </div>
+        {/* Side Bar */}
         <SideBar/>
-
+        {/* Canvas */}
         <div className="w-3/4 h-full bg-gray-900" id="canvasContainer">
           <canvas className="w-full h-full" id="canvas"></canvas>
         </div>
-
+        {/* Right Side Utility Panels */}
         <div className="w-1/4 h-full bg-gray-800">
           <div className="right-side-panel">
             <Labels 
-              selectedLabel={selectedLabel} 
-              setSelectedLabel={setSelectedLabel} 
+              labels={labels}
+              setLabels={setLabels}
+              selectedLabelIndex={selectedLabelIndex} 
+              setSelectedLabelIndex={setSelectedLabelIndex} 
             />
           </div>
           <div className="right-side-panel">
@@ -205,6 +213,7 @@ function App() {
           <div className="right-side-panel">
             <Export
               annotations={annotations}
+              images={images}
             />
           </div>
         </div>

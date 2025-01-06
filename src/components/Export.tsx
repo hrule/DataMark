@@ -1,59 +1,119 @@
 import { useState } from "react";
-import { Annotation } from "../types";
+import { Annotation, ImageFile } from "../types";
 import ExportButton from "./ExportButton";
+import JSZip from "jszip"; // Install with npm install jszip
+import { saveAs } from "file-saver"; // Install with npm install file-saver
+import ConfirmationModal from "./ConfirmationModal";
 
 interface ExportProps {
     annotations: Annotation[][];
+    images: ImageFile[];
 }
 
 const Export: React.FC<ExportProps> = ({
     annotations,
+    images,
 }) => {
     const [exportFormat, setExportFormat] = useState<string | null>(null);
+    const [showModal, setShowModal] = useState(false);
 
-    const handleExport = () => {
-        const format = exportFormat || "yolov5"; 
-        const data = convertAnnotationsToFormat(annotations, format);
-        const blob = new Blob([data], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
+    const fetchImageBlob = async (url: string): Promise<Blob> => {
+        const response = await fetch(url);
+        return response.blob();
+    };
     
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `annotations-${format}.txt`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleExport = async (annotations: Annotation[][], images: ImageFile[], formats: string[]) => {
+        // Currently, no difference between export formats, but can be added later on.
+        const selectedFormat = exportFormat || "yolov5";
+        const zip = new JSZip();
+        
+        // zip two arrays of same length together. [image, annotation] format.
+        const allFiles:[ImageFile, Annotation[]][] = images.map((image, index) => [image, annotations[index]]);
     
-        URL.revokeObjectURL(url);
+        // Split into train/valid/test 70/20/10 ratios
+        const trainSplit = Math.floor(0.7 * images.length);
+        const validSplit = Math.floor(0.9 * images.length);
+    
+        const splits = {
+            train: allFiles.slice(0, trainSplit),
+            valid: allFiles.slice(trainSplit, validSplit),
+            test: allFiles.slice(validSplit),
+        };
+
+        for (const [split, files] of Object.entries(splits)) {
+            const imagesFolder = zip.folder(`${split}/images`);
+            const labelsFolder = zip.folder(`${split}/labels`);
+        
+            for (const [image, imageAnnotations] of files) {
+                const blob = await fetchImageBlob(image.url); // Fetch image blob
+                const content = imageAnnotations.map(formatAnnotation).join("\n");
+                const baseName = image.name.replace(/\.[^/.]+$/, ""); // Remove extension
+        
+                if (imagesFolder) {
+                    imagesFolder.file(image.name, blob); // Add image as a blob
+                }
+                if (labelsFolder) {
+                    labelsFolder.file(`${baseName}.txt`, content); // Add corresponding label
+                }
+            }
+        }
+
+        zip.generateAsync({ type: "blob" }).then((blob) => {
+            saveAs(blob, "annotations.zip");
+        });
     };
 
     const formatAnnotation = (annotation: Annotation) => {
-        return `${annotation.label} ${annotation.left} ${annotation.top} ${annotation.width} ${annotation.height}`
+        return `${annotation.labelIndex} ${annotation.left} ${annotation.top} ${annotation.width} ${annotation.height}`
     }
     
-    const convertAnnotationsToFormat = (annotations: Annotation[][], format: string) => {
-    if (format === "yolov5" || format === "yolov7" || format === "yolov8") {
-        return annotations
-        .flatMap((imageAnnotations) =>
-            imageAnnotations.map(formatAnnotation)
-        )
-        .join("\n");
-    }
-    return JSON.stringify(annotations, null, 2); 
+    const convertAnnotationsToFormat = (annotations: Annotation[][], formats: string[], selectedFormat: string) => {
+        if (formats.includes(selectedFormat)) {
+            return annotations
+            .flatMap((imageAnnotations) =>
+                imageAnnotations.map(formatAnnotation)
+            )
+            .join("\n");
+        }
+        return JSON.stringify(annotations, null, 2); 
     };
+
+    const handleButtonClick = (formats: string[]) => {
+        const unannotatedCount = annotations.filter((a) => a.length === 0).length;
+        if (unannotatedCount > 0) {
+            setShowModal(true);
+        } else {
+            handleExport(annotations, images, formats);
+        }
+    };
+
+    const formats = ["yolov5", "yolov7", "yolov8"]
 
     return (
         <div className="bg-gray-800 text-white p-4 rounded">
-        <h3 className="text-lg font-bold mb-2">Select Export Format</h3>
-        <div className="space-y-2">
-            {["yolov5", "yolov7", "yolov8"].map((format) => (
-                <ExportButton format={format} onClick={() => {
-                    setExportFormat(format);
-                    handleExport();
-                }}/>
-                ))
-            }
-        </div>
+            <h3 className="text-lg font-bold mb-2">Select Export Format</h3>
+            <div className="space-y-2">
+                {formats.map((format) => (
+                    <ExportButton 
+                        key={format} 
+                        format={format} 
+                        onClick={() => {
+                            setExportFormat(format);
+                            handleButtonClick(formats);
+                        }}
+                    />
+                ))}
+            </div>
+            {showModal && (
+                <ConfirmationModal
+                    unannotatedCount={annotations.filter((a) => a.length === 0).length}
+                    onConfirm={() => {
+                        setShowModal(false);
+                        handleExport(annotations, images, formats);
+                    }}
+                    onCancel={() => setShowModal(false)}
+                />
+            )}
         </div>
     );
 }

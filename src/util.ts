@@ -106,7 +106,7 @@ const handleDrawMode = (
   fabricCanvas: fabric.Canvas,
   selectedFabricImage: fabric.Image | null,
   selectedImageInfo: SelectedImage | null,
-  selectedLabel: string,
+  selectedLabelIndex: number,
   setAnnotations: React.Dispatch<React.SetStateAction<Annotation[][]>>,
 ) => {
   fabricCanvas.setCursor('crosshair')
@@ -140,7 +140,7 @@ const handleDrawMode = (
 
       const newAnnotation: Annotation = {
         ...scaledRect,
-        label: selectedLabel, 
+        labelIndex: selectedLabelIndex, 
       };
 
       setAnnotations((prevAnnotations) => {

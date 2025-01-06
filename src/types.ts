@@ -46,7 +46,7 @@ type Rectangle = Readonly<{
     height: number; 
 }>
 
-type Annotation = Rectangle & Readonly<{label: string}>
+type Annotation = Rectangle & Readonly<{labelIndex: number}>
 
 /** State processing */
 
