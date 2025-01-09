@@ -1,4 +1,4 @@
-import { Annotation, ImageFile, SelectedImage } from "../types";
+import { Annotation, ImageFile, SelectedImage } from "../helper/types";
 
 interface ImageAnnotationProps {
   annotations: Annotation[][];

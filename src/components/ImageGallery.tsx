@@ -1,5 +1,5 @@
 import React from "react";
-import { Annotation, SelectedImage } from "../types";
+import { Annotation, SelectedImage } from "../helper/types";
 
 interface ImageFile {
   name: string;

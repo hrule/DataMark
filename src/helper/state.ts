@@ -1,5 +1,4 @@
-import { State} from "./types";
-import { Mode } from "./types";
+import { State, Mode } from "./types";
 
 export { initialState }
 

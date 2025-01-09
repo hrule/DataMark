@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Annotation, ImageFile } from "../types";
+import { Annotation, ImageFile } from "../helper/types";
 import ExportButton from "./ExportButton";
 import JSZip from "jszip"; // Install with npm install jszip
 import { saveAs } from "file-saver"; // Install with npm install file-saver
