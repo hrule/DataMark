@@ -13,6 +13,7 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
 }) => {
   return (
     <div className="h-full p-4">
+      <h2 className="panel-heading">Annotations</h2>
       {(images.length > 0 && (selectedImageInfo?.imageIndex !== undefined) && (selectedImageInfo?.imageIndex >= 0) && (selectedImageInfo?.imageIndex <= images.length - 1)) ? (
         <>
           <h2 className="text-white font-bold mb-2">{images[selectedImageInfo.imageIndex].name}</h2>

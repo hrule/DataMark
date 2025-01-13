@@ -25,7 +25,7 @@ const Labels:React.FC<LabelsProps> = ({
   
     return (
       <div className="p-4 h-full bg-gray-800 rounded-md flex flex-col">
-        <h2 className="text-white font-bold mb-2">Labels</h2>
+        <h2 className="panel-heading">Labels</h2>
   
         {labels.length > 0 ? (
           <ul className="mb-4 overflow-y-auto hide-scrollbar">
