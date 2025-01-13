@@ -91,7 +91,7 @@ const Export: React.FC<ExportProps> = ({
 
     return (
         <div className="bg-gray-800 text-white p-4 rounded">
-            <h3 className="text-lg font-bold mb-2">Select Export Format</h3>
+            <h2 className="panel-heading">Select Export Format</h2>
             <div className="space-y-2">
                 {formats.map((format) => (
                     <ExportButton 

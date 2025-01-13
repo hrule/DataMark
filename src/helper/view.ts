@@ -9,7 +9,7 @@ const setBackground = (url: string, canvas: fabric.Canvas) => {
       canvas.renderAll()
     })
 }
-  
+
 const initCanvas = (id: string) => {
     return new fabric.Canvas(id, {
         width: 500,
@@ -43,6 +43,7 @@ const createRectangle = (canvas: fabric.Canvas, rect: Rectangle) => {
       hasControls: false,
       selectable: false,
   })
+  // fabricRect.set('id', )
   canvas.add(fabricRect)
   canvas.requestRenderAll()
 }
@@ -55,6 +56,16 @@ const createRectangleFromAnnotation = (canvas: fabric.Canvas | null, img: fabric
   }
 }
 
+/**
+ * Called whenever image is switched.
+ * Clears canvas, loads image scaled and centered, adds all annotation boxes.
+ * 
+ * @param image 
+ * @param canvas 
+ * @param setSelectedFabricImage 
+ * @param annotations 
+ * @param selectedImageIndex 
+ */
 const addImage = async (
     image: ImageFile, 
     canvas: fabric.Canvas, 
@@ -88,7 +99,9 @@ const addImage = async (
         canvas.add(img);
         img.center()
 
-        annotations[selectedImageIndex].forEach((annotation) => createRectangleFromAnnotation(canvas, img, annotation))
+        annotations[selectedImageIndex].forEach((annotation) => 
+          createRectangleFromAnnotation(canvas, img, annotation)
+        )
 
         canvas.requestRenderAll();
 
@@ -100,8 +113,7 @@ const addImage = async (
     }    
 }
 
-
-function loadImage(url: string): Promise<fabric.Image> {
+const loadImage = (url: string): Promise<fabric.Image> => {
   return new Promise((resolve, reject) => {
       fabric.Image.fromURL(url, (img) => {
           if (img) {

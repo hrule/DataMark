@@ -2,6 +2,7 @@ import { fromEventPattern } from "rxjs";
 import { Annotation, Rectangle, SelectedImage, State } from "./types";
 import { fabric } from 'fabric'
 import { createRectangle } from "./view";
+import { patchAnnotation } from "./server";
 
 export { createFabricEventObservable, handlePanMode, handleDrawMode, coordinateToScaled, scaledToCoordinates }
 
@@ -124,7 +125,7 @@ const handleDrawMode = (
     undimCanvas(fabricCanvas)
   }
 
-  if (state.renderRectangle){
+  if (state.renderRectangle && selectedFabricImage && selectedImageInfo){
     const rectangleToRender: Rectangle = {
       left: state.rectStartX,
       top: state.rectStartY,
@@ -133,27 +134,30 @@ const handleDrawMode = (
     }
 
     createRectangle(fabricCanvas, rectangleToRender)
-    
-    if (selectedFabricImage && selectedImageInfo){
-      const fabricImage = selectedFabricImage
-      const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
+  
+    const fabricImage = selectedFabricImage
+    const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
 
-      const newAnnotation: Annotation = {
-        ...scaledRect,
-        labelIndex: selectedLabelIndex, 
-      };
+    patchAnnotation(selectedImageInfo.image.name, ({
+      labelIndex: selectedImageInfo.imageIndex,
+      ...scaledRect
+    }))
 
-      setAnnotations((prevAnnotations) => {
-        const updatedAnnotations = [...prevAnnotations];
-        if (selectedImageInfo?.imageIndex !== undefined){
-          updatedAnnotations[selectedImageInfo.imageIndex] = [
-            ...(updatedAnnotations[selectedImageInfo.imageIndex] || []),
-            newAnnotation,
-          ];
-        }
-        return updatedAnnotations;
-      });
-    }
+    const newAnnotation: Annotation = {
+      ...scaledRect,
+      labelIndex: selectedLabelIndex, 
+    };
+
+    setAnnotations((prevAnnotations) => {
+      const updatedAnnotations = [...prevAnnotations];
+      if (selectedImageInfo?.imageIndex !== undefined){
+        updatedAnnotations[selectedImageInfo.imageIndex] = [
+          ...(updatedAnnotations[selectedImageInfo.imageIndex] || []),
+          newAnnotation,
+        ];
+      }
+      return updatedAnnotations;
+    });
   }
 }
 

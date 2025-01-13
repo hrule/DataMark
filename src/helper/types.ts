@@ -1,4 +1,4 @@
-export type {State, Action, FabricMouseEvent, ImageFile, Rectangle, Annotation, SelectedImage, Key, Event};
+export type {State, Action, FabricMouseEvent, ImageFile, Rectangle, Annotation, SelectedImage, Key, Event, APIImage};
 export {Mode, MouseMove, MouseDown, MouseUp, SwitchMode, NextImage, PrevImage, reduceState, UNSELECTABLE_IMAGE_PROPS}
 
 /** Constants */
@@ -46,7 +46,24 @@ type Rectangle = Readonly<{
     height: number; 
 }>
 
-type Annotation = Rectangle & Readonly<{labelIndex: number}>
+// type Annotation = Rectangle & Readonly<{
+//     labelIndex: number;
+// }>
+
+// Experimenting with annotation Id, for search and delete.
+// Needed for canvas and database. 
+type Annotation = Rectangle & Readonly<{
+    labelIndex: number;
+}>
+
+/** API types. */
+
+type APIImage = {
+    imageName: string;
+    imageURL: string;
+    annotations: Annotation[];
+}
+
 
 /** State processing */
 

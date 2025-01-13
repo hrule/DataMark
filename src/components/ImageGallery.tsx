@@ -1,5 +1,6 @@
 import React from "react";
 import { Annotation, SelectedImage } from "../helper/types";
+import { postImage } from "../helper/server";
 
 interface ImageFile {
   name: string;
@@ -28,6 +29,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
     }));
     setImages(imageList);
     setAnnotations(Array.from({ length: imageList.length }, () => []))
+    for (const imageFile of imageList) {
+      postImage({
+        imageName: imageFile.name,
+        imageURL: imageFile.url,
+        annotations: []
+      })
+    }
     setSelectedImageInfo(null);
   };
 
