@@ -1,10 +1,10 @@
 import { fromEventPattern } from "rxjs";
-import { Annotation, Rectangle, SelectedImage, State } from "./types";
+import { Annotation, ImageFile, Rectangle, SelectedImage, State } from "./types";
 import { fabric } from 'fabric'
 import { createRectangle } from "./view";
 import { patchAnnotation } from "./server";
 
-export { createFabricEventObservable, handlePanMode, handleDrawMode, coordinateToScaled, scaledToCoordinates }
+export { createFabricEventObservable, handlePanMode, handleDrawMode, handleArrowKeyPress, coordinateToScaled, scaledToCoordinates }
 
 const createFabricEventObservable = (fabricCanvas: fabric.Canvas, eventName: string) => {
   return fromEventPattern(
@@ -56,11 +56,6 @@ const dimCanvas = (canvas: fabric.Canvas, x1: number, y1: number, x2: number, y2
   const adjustedX2 = x2 - panOffset.x;
   const adjustedY2 = y2 - panOffset.y;
 
-  // const left = Math.min(x1, x2);  
-  // const top = Math.min(y1, y2);   
-  // const width = Math.max(x1, x2) - left; 
-  // const height = Math.max(y1, y2) - top; 
-
   const left = Math.min(x1, adjustedX2);  
   const top = Math.min(y1, adjustedY2);   
   const width = Math.max(x1, adjustedX2) - left; 
@@ -109,6 +104,8 @@ const handleDrawMode = (
   selectedImageInfo: SelectedImage | null,
   selectedLabelIndex: number,
   setAnnotations: React.Dispatch<React.SetStateAction<Annotation[][]>>,
+  annotationCount: number,
+  setAnnotationCount: React.Dispatch<React.SetStateAction<number>>
 ) => {
   fabricCanvas.setCursor('crosshair')
 
@@ -133,19 +130,23 @@ const handleDrawMode = (
       height: state.rectEndY - state.rectStartY,
     }
 
-    createRectangle(fabricCanvas, rectangleToRender)
+    createRectangle(fabricCanvas, rectangleToRender, `annotation${annotationCount}`)
+
+    setAnnotationCount((prev) => prev + 1)
   
     const fabricImage = selectedFabricImage
     const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
 
     patchAnnotation(selectedImageInfo.image.name, ({
       labelIndex: selectedImageInfo.imageIndex,
+      annotationId: `annotation${annotationCount}`,
       ...scaledRect
     }))
 
     const newAnnotation: Annotation = {
       ...scaledRect,
       labelIndex: selectedLabelIndex, 
+      annotationId: `annotation${annotationCount}`,
     };
 
     setAnnotations((prevAnnotations) => {
@@ -169,6 +170,37 @@ const handlePanMode = (state: State, fabricCanvas: fabric.Canvas) => {
     fabricCanvas.relativePan(new fabric.Point(state.panMoveX, state.panMoveY));
   }
   fabricCanvas.requestRenderAll();
+}
+
+const handleArrowKeyPress = (
+  state: State,
+  images: ImageFile[],
+  selectedImageInfo: SelectedImage | null,
+  setSelectedImageInfo: React.Dispatch<React.SetStateAction<SelectedImage | null>>,
+) => {
+  const imagesLength = images.length
+  if (imagesLength > 0 && selectedImageInfo){
+    // If up arrow key is pressed, new image index is increased if not already at max.
+    // Similar logic for down arrow key.
+    // If neither key pressed, null and don't do anything. 
+    const newImageIndex = state.upArrowPressed ? (Math.min(imagesLength - 1, selectedImageInfo.imageIndex + 1)) 
+    : (state.downArrowPressed ? (Math.max(0, selectedImageInfo.imageIndex - 1)) : (
+      null
+    ))
+
+    if (newImageIndex !== null){
+      setSelectedImageInfo((prevImageInfo) => {
+        if (prevImageInfo && selectedImageInfo){
+          return ({
+            image: images[newImageIndex],
+            imageIndex: newImageIndex,
+          })
+        }else{
+          return null
+        }
+      })
+    }
+  }
 }
 
 const coordinateToScaled = (

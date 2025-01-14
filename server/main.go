@@ -15,11 +15,12 @@ import (
 )
 
 type annotation struct {
-	LabelIndex int     `json:"labelIndex" bson:"labelIndex"`
-	Left       float32 `json:"left" bson:"left"`
-	Top        float32 `json:"top" bson:"top"`
-	Width      float32 `json:"width" bson:"width"`
-	Height     float32 `json:"height" bson:"height"`
+	AnnotationId string  `json:"annotationId" bson:"annotationId"`
+	LabelIndex   int     `json:"labelIndex" bson:"labelIndex"`
+	Left         float32 `json:"left" bson:"left"`
+	Top          float32 `json:"top" bson:"top"`
+	Width        float32 `json:"width" bson:"width"`
+	Height       float32 `json:"height" bson:"height"`
 }
 
 type imageEntry struct {
@@ -126,6 +127,59 @@ func addAnnotationToImage(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation added successfully"})
 }
 
+// func deleteAnnotation(c *gin.Context) {
+// 	imageName := c.Param("imageName")
+// 	annotationID := c.Param("annotationId")
+
+// 	// Convert annotationID to ObjectID
+// 	annotationObjectID, err := primitive.ObjectIDFromHex(annotationID)
+// 	if err != nil {
+// 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid annotation ID"})
+// 		return
+// 	}
+
+// 	// Find and update the image entry to remove the annotation
+// 	filter := bson.D{{Key: "imageName", Value: imageName}}
+// 	update := bson.D{
+// 		{Key: "$pull", Value: bson.D{
+// 			{Key: "annotations", Value: bson.D{{Key: "_id", Value: annotationObjectID}}},
+// 		}},
+// 	}
+
+// 	result, err := collection.UpdateOne(context.TODO(), filter, update)
+// 	if err != nil {
+// 		log.Printf("Failed to delete annotation '%s' for image '%s': %v\n", annotationID, imageName, err)
+// 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete annotation"})
+// 		return
+// 	}
+
+// 	if result.MatchedCount == 0 {
+// 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Image not found"})
+// 		return
+// 	}
+// 	if result.ModifiedCount == 0 {
+// 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Annotation not found"})
+// 		return
+// 	}
+
+// 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation deleted successfully"})
+// }
+
+func deleteAnnotationFromImage(c *gin.Context) {
+	imageName := c.Param("imageName")
+	annotationId := c.Param("annotationId")
+
+	filter := bson.M{"imageName": imageName}
+	update := bson.M{"$pull": bson.M{"annotations": bson.M{"annotationId": annotationId}}}
+
+	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil || result.MatchedCount == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Image or annotation not found"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation deleted successfully"})
+}
+
 func main() {
 	// Create a MongoDB client and connect
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
@@ -151,11 +205,16 @@ func main() {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
+	// GET
 	router.GET("/images", getImageEntries)
-	router.POST("/images", createImageEntry)
 	router.GET("/images/:imageName/annotations", getAnnotationsByImageName)
+	// POST
+	router.POST("/images", createImageEntry)
+	// PATCH
 	router.PATCH("/annotations", addAnnotationToImage)
+	// DELETE
 	router.DELETE("/images", deleteImageEntries)
+	router.DELETE("/images/:imageName/annotations/:annotationId", deleteAnnotationFromImage)
 
 	router.Run("localhost:8080")
 }

@@ -10,7 +10,7 @@ import { fabric } from 'fabric'
 import { addImage, initCanvas, resizeCanvas } from "./helper/view"
 import { Action, Annotation, FabricMouseEvent, ImageFile, Key, Event, Mode, MouseDown, MouseMove, MouseUp, reduceState, SelectedImage, State, SwitchMode, NextImage, PrevImage } from "./helper/types"
 import { initialState } from "./helper/state"
-import { createFabricEventObservable, handleDrawMode, handlePanMode } from "./helper/util"
+import { createFabricEventObservable, handleArrowKeyPress, handleDrawMode, handlePanMode } from "./helper/util"
 import SideBar from "./components/SideBar"
 import Export from "./components/Export"
 import SelectLabelPopup from "./components/SelectLabelPopup"
@@ -35,6 +35,9 @@ function App() {
 
   const [selectedFabricImage, setSelectedFabricImage] = useState<fabric.Image | null>(null);
   const selectedFabricImageRef = useRef(selectedFabricImage)
+
+  const [annotationCount, setAnnotationCount] = useState<number>(0);
+  const annotationCountRef = useRef(annotationCount)
 
   useEffect(() => {
     const fabricCanvas = initCanvas('canvas')
@@ -107,6 +110,8 @@ function App() {
               selectedImageInfoRef.current,
               selectedLabelIndexRef.current,
               setAnnotations,
+              annotationCountRef.current,
+              setAnnotationCount,
             )
             break
           case Mode.Pan:
@@ -114,25 +119,12 @@ function App() {
             break
           default:
         }
-
-        if (imagesRef.current.length > 0 && selectedImageInfoRef.current){
-          const newImageIndex = s.upArrowPressed ? (Math.min(imagesRef.current.length - 1, selectedImageInfoRef.current.imageIndex + 1)) 
-          : (s.downArrowPressed ? (Math.max(0, selectedImageInfoRef.current.imageIndex - 1)) : (
-            null
-          ))
-          if (newImageIndex !== null){
-            setSelectedImageInfo((prevImageInfo) => {
-              if (prevImageInfo && selectedImageInfoRef.current){
-                return ({
-                  image: imagesRef.current[newImageIndex],
-                  imageIndex: newImageIndex,
-                })
-              }else{
-                return null
-              }
-            })
-          }
-        }
+        
+        handleArrowKeyPress(
+          s, imagesRef.current, 
+          selectedImageInfoRef.current, 
+          setSelectedImageInfo
+        )
       }  
     })
 
@@ -174,8 +166,12 @@ function App() {
     selectedFabricImageRef.current = selectedFabricImage;
   }, [selectedFabricImage]);
 
+  useEffect(() => {
+    annotationCountRef.current = annotationCount
+  }, [annotationCount]);
+
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen overflow-hidden">
       {selectedLabelIndex === null ? <SelectLabelPopup/> : <></>}
       <div className="flex h-full w-full">
         {/* Image Panel */}
@@ -208,6 +204,7 @@ function App() {
               annotations={annotations}
               images={images}
               selectedImageInfo={selectedImageInfo}
+              fabricCanvas={fabricCanvasRef.current}
               />
           </div>
           <div className="right-side-panel">

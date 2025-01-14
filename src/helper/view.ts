@@ -1,47 +1,48 @@
 import { fabric } from 'fabric'
 import { Annotation, ImageFile, Rectangle, UNSELECTABLE_IMAGE_PROPS } from './types'
 import { scaledToCoordinates } from './util'
-export { setBackground, initCanvas, resizeCanvas, clearCanvas, createRectangle, createRectangleFromAnnotation, addImage }
+export { setBackground, initCanvas, resizeCanvas, clearCanvas, createRectangle, createRectangleFromAnnotation, addImage, removeRectangle }
 
 const setBackground = (url: string, canvas: fabric.Canvas) => {
-    fabric.Image.fromURL(url, (img) => {
-      canvas.backgroundImage = img
-      canvas.renderAll()
-    })
+  fabric.Image.fromURL(url, (img) => {
+    canvas.backgroundImage = img
+    canvas.renderAll()
+  })
 }
 
 const initCanvas = (id: string) => {
-    return new fabric.Canvas(id, {
-        width: 500,
-        height: 500,
-        selection: false,
-    })
+  return new fabric.Canvas(id, {
+      width: 500,
+      height: 500,
+      selection: false,
+  })
 }
 
 const resizeCanvas = (canvas: fabric.Canvas, container: HTMLElement) => {
-    canvas.setWidth(container.clientWidth);
-    canvas.setHeight(container.clientHeight);
-    canvas.renderAll();
+  canvas.setWidth(container.clientWidth);
+  canvas.setHeight(container.clientHeight);
+  canvas.renderAll();
 };
 
 const clearCanvas = (canvas: fabric.Canvas) => {
-    canvas.getObjects().forEach((o) => {
-        if (o !== canvas.backgroundImage) [
+  canvas.getObjects().forEach((o) => {
+      if (o !== canvas.backgroundImage) {
         canvas.remove(o)
-        ]
-    });
+      }
+  });
 }
 
-const createRectangle = (canvas: fabric.Canvas, rect: Rectangle) => {
+const createRectangle = (canvas: fabric.Canvas, rect: Rectangle, id: string) => {
   const fabricRect = new fabric.Rect({
-      ...rect,
-      fill: "green",
-      borderColor: "red", 
-      opacity: 0.2, 
-      hasRotatingPoint: false,
-      lockRotation: true,
-      hasControls: false,
-      selectable: false,
+    ...rect,
+    fill: "green",
+    borderColor: "red", 
+    opacity: 0.2, 
+    hasRotatingPoint: false,
+    lockRotation: true,
+    hasControls: false,
+    selectable: false,
+    name: id // Will use name for now, because can't use id, makes removing hard (typescript)d
   })
   // fabricRect.set('id', )
   canvas.add(fabricRect)
@@ -52,8 +53,16 @@ const createRectangleFromAnnotation = (canvas: fabric.Canvas | null, img: fabric
   if (canvas && img) {
     const scaledRect = annotation as Rectangle
     const rectCoordinates = scaledToCoordinates(img, scaledRect)
-    createRectangle(canvas, rectCoordinates)
+    createRectangle(canvas, rectCoordinates, annotation.annotationId)
   }
+}
+
+const removeRectangle = (canvas: fabric.Canvas, id: string) => {
+  canvas.getObjects().forEach((o) => {
+    if (o.name === id) {
+      canvas.remove(o)
+    }
+  });
 }
 
 /**

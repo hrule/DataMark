@@ -54,6 +54,7 @@ type Rectangle = Readonly<{
 // Needed for canvas and database. 
 type Annotation = Rectangle & Readonly<{
     labelIndex: number;
+    annotationId: string;
 }>
 
 /** API types. */
