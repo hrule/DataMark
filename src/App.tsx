@@ -8,12 +8,13 @@ import { filter, fromEvent, map, merge, Observable, scan } from "rxjs"
 import { fabric } from 'fabric'
 // Self-made
 import { addImage, initCanvas, resizeCanvas } from "./helper/view"
-import { Action, Annotation, FabricMouseEvent, ImageFile, Key, Event, Mode, MouseDown, MouseMove, MouseUp, reduceState, SelectedImage, State, SwitchMode, NextImage, PrevImage } from "./helper/types"
+import { Action, FabricMouseEvent, ImageFile, Key, Event, Mode, MouseDown, MouseMove, MouseUp, reduceState, SelectedImage, State, SwitchMode, NextImage, PrevImage } from "./helper/types"
 import { initialState } from "./helper/state"
 import { createFabricEventObservable, handleArrowKeyPress, handleDrawMode, handlePanMode } from "./helper/util"
 import SideBar from "./components/SideBar"
 import Export from "./components/Export"
 import SelectLabelPopup from "./components/SelectLabelPopup"
+import { getImagesPaginated } from "./helper/server"
 
 function App() {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
@@ -27,9 +28,6 @@ function App() {
   const [selectedLabelIndex, setSelectedLabelIndex] = useState<number | null>(null);
   const selectedLabelIndexRef = useRef<number | null>(selectedLabelIndex)
 
-  const [annotations, setAnnotations] = useState<Annotation[][]>([])
-  const annotationsRef = useRef<Annotation[][]>(annotations)
-
   const [selectedImageInfo, setSelectedImageInfo] = useState<SelectedImage | null>(null);
   const selectedImageInfoRef = useRef(selectedImageInfo)
 
@@ -38,6 +36,9 @@ function App() {
 
   const [annotationCount, setAnnotationCount] = useState<number>(0);
   const annotationCountRef = useRef(annotationCount)
+
+  // Consider an error popup to let user know errors.
+  // const [isError, setIsError] = useState<boolean>(false);
 
   useEffect(() => {
     const fabricCanvas = initCanvas('canvas')
@@ -51,6 +52,20 @@ function App() {
 
     const drawBtn = document.querySelector("#drawIcon") as HTMLDivElement
     const panBtn = document.querySelector("#panIcon") as HTMLDivElement
+
+    // Load from database currently stored info. 
+    async function loadDatabaseState() {
+      const firstPage = await getImagesPaginated(0)
+      if (firstPage.length > 0) {
+        setImages(firstPage)
+        setSelectedImageInfo((_) => ({
+          image: firstPage[0],
+          imageIndex: 0
+        }))
+      }
+    }
+
+    loadDatabaseState()
     
     const drawClick$ = fromEvent(drawBtn, 'click').pipe(map(() => new SwitchMode(Mode.Draw)))
     const panClick$ = fromEvent(panBtn, 'click').pipe(map(() => new SwitchMode(Mode.Pan)))
@@ -60,6 +75,7 @@ function App() {
           filter(({ code }) => code === k),
           filter(({ repeat }) => repeat === false),
       );
+    
     const upArrowPress$ = key$('keydown', 'ArrowUp').pipe(map(() => new NextImage()))
     const downArrowPress$ = key$('keydown', 'ArrowDown').pipe(map(() => new PrevImage()))
 
@@ -109,7 +125,6 @@ function App() {
               selectedFabricImageRef.current,
               selectedImageInfoRef.current,
               selectedLabelIndexRef.current,
-              setAnnotations,
               annotationCountRef.current,
               setAnnotationCount,
             )
@@ -121,7 +136,8 @@ function App() {
         }
         
         handleArrowKeyPress(
-          s, imagesRef.current, 
+          s,
+          imagesRef.current, 
           selectedImageInfoRef.current, 
           setSelectedImageInfo
         )
@@ -141,18 +157,12 @@ function App() {
     selectedImageInfoRef.current = selectedImageInfo;
     if (selectedImageInfo && fabricCanvasRef.current){
       addImage(
-        selectedImageInfo.image, 
         fabricCanvasRef.current, 
         setSelectedFabricImage,
-        annotationsRef.current, 
-        selectedImageInfo.imageIndex
+        selectedImageInfo
       )
     }
   }, [selectedImageInfo]);
-  
-  useEffect(() => {
-    annotationsRef.current = annotations;
-  }, [annotations]);
 
   useEffect(() => {
     selectedLabelIndexRef.current = selectedLabelIndex;
@@ -172,14 +182,15 @@ function App() {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
+      {/* Popups */}
       {selectedLabelIndex === null ? <SelectLabelPopup/> : <></>}
+
       <div className="flex h-full w-full">
         {/* Image Panel */}
         <div className="w-1/6 h-full bg-gray-600">
           <ImageGallery 
             images={images}
             setImages={setImages}
-            setAnnotations={setAnnotations}
             setSelectedImageInfo={setSelectedImageInfo}
           />
         </div>
@@ -200,18 +211,15 @@ function App() {
             />
           </div>
           <div className="right-side-panel">
-            <ImageAnnotation 
-              annotations={annotations}
+            <ImageAnnotation
               images={images}
               selectedImageInfo={selectedImageInfo}
               fabricCanvas={fabricCanvasRef.current}
+              annotationCount={annotationCount}
               />
           </div>
           <div className="right-side-panel">
-            <Export
-              annotations={annotations}
-              images={images}
-            />
+            <Export />
           </div>
         </div>
       </div>

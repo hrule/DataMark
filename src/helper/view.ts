@@ -1,6 +1,7 @@
 import { fabric } from 'fabric'
-import { Annotation, ImageFile, Rectangle, UNSELECTABLE_IMAGE_PROPS } from './types'
+import { Annotation, Rectangle, SelectedImage, UNSELECTABLE_IMAGE_PROPS } from './types'
 import { scaledToCoordinates } from './util'
+import { getAnnotationsByImageName } from './server'
 export { setBackground, initCanvas, resizeCanvas, clearCanvas, createRectangle, createRectangleFromAnnotation, addImage, removeRectangle }
 
 const setBackground = (url: string, canvas: fabric.Canvas) => {
@@ -42,7 +43,7 @@ const createRectangle = (canvas: fabric.Canvas, rect: Rectangle, id: string) => 
     lockRotation: true,
     hasControls: false,
     selectable: false,
-    name: id // Will use name for now, because can't use id, makes removing hard (typescript)d
+    name: id // Will use name for now, because can't use id, makes removing hard (typescript)
   })
   // fabricRect.set('id', )
   canvas.add(fabricRect)
@@ -72,18 +73,15 @@ const removeRectangle = (canvas: fabric.Canvas, id: string) => {
  * @param image 
  * @param canvas 
  * @param setSelectedFabricImage 
- * @param annotations 
- * @param selectedImageIndex 
+ * @param annotations
  */
 const addImage = async (
-    image: ImageFile, 
     canvas: fabric.Canvas, 
     setSelectedFabricImage: React.Dispatch<React.SetStateAction<fabric.Image | null>>,
-    annotations: Annotation[][],
-    selectedImageIndex: number,
+    selectedImageInfo: SelectedImage
 ) => {
     try {
-      const img = await loadImage(image.url)
+      const img = await loadImage(selectedImageInfo.image.imageURL)
 
       canvas.clear()
 
@@ -108,9 +106,10 @@ const addImage = async (
         canvas.add(img);
         img.center()
 
-        annotations[selectedImageIndex].forEach((annotation) => 
+        const imageAnnotations = await getAnnotationsByImageName(selectedImageInfo.image.imageName)
+        imageAnnotations.forEach((annotation) => {
           createRectangleFromAnnotation(canvas, img, annotation)
-        )
+        })
 
         canvas.requestRenderAll();
 

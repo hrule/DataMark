@@ -2,7 +2,7 @@ import { fromEventPattern } from "rxjs";
 import { Annotation, ImageFile, Rectangle, SelectedImage, State } from "./types";
 import { fabric } from 'fabric'
 import { createRectangle } from "./view";
-import { patchAnnotation } from "./server";
+import { postAnnotationToImage } from "./server";
 
 export { createFabricEventObservable, handlePanMode, handleDrawMode, handleArrowKeyPress, coordinateToScaled, scaledToCoordinates }
 
@@ -103,7 +103,6 @@ const handleDrawMode = (
   selectedFabricImage: fabric.Image | null,
   selectedImageInfo: SelectedImage | null,
   selectedLabelIndex: number,
-  setAnnotations: React.Dispatch<React.SetStateAction<Annotation[][]>>,
   annotationCount: number,
   setAnnotationCount: React.Dispatch<React.SetStateAction<number>>
 ) => {
@@ -123,6 +122,8 @@ const handleDrawMode = (
   }
 
   if (state.renderRectangle && selectedFabricImage && selectedImageInfo){
+    const fabricImage = selectedFabricImage
+
     const rectangleToRender: Rectangle = {
       left: state.rectStartX,
       top: state.rectStartY,
@@ -130,35 +131,21 @@ const handleDrawMode = (
       height: state.rectEndY - state.rectStartY,
     }
 
-    createRectangle(fabricCanvas, rectangleToRender, `annotation${annotationCount}`)
-
-    setAnnotationCount((prev) => prev + 1)
-  
-    const fabricImage = selectedFabricImage
     const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
 
-    patchAnnotation(selectedImageInfo.image.name, ({
-      labelIndex: selectedImageInfo.imageIndex,
-      annotationId: `annotation${annotationCount}`,
-      ...scaledRect
-    }))
+    const newAnnotationId = `annotation${annotationCount}`
 
     const newAnnotation: Annotation = {
-      ...scaledRect,
+      annotationId: newAnnotationId,
       labelIndex: selectedLabelIndex, 
-      annotationId: `annotation${annotationCount}`,
+      ...scaledRect,
     };
 
-    setAnnotations((prevAnnotations) => {
-      const updatedAnnotations = [...prevAnnotations];
-      if (selectedImageInfo?.imageIndex !== undefined){
-        updatedAnnotations[selectedImageInfo.imageIndex] = [
-          ...(updatedAnnotations[selectedImageInfo.imageIndex] || []),
-          newAnnotation,
-        ];
-      }
-      return updatedAnnotations;
-    });
+    createRectangle(fabricCanvas, rectangleToRender, newAnnotationId)
+
+    setAnnotationCount((prev) => prev + 1)
+    
+    postAnnotationToImage(selectedImageInfo.image.imageName, newAnnotation)
   }
 }
 

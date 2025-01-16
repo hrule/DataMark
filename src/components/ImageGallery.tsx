@@ -1,50 +1,84 @@
-import React from "react";
-import { Annotation, SelectedImage } from "../helper/types";
-import { postImage } from "../helper/server";
-
-interface ImageFile {
-  name: string;
-  url: string;
-}
+import React, { useEffect, useState } from "react";
+import { ImageFile, SelectedImage } from "../helper/types";
+import { getImagesPaginated, postImage } from "../helper/server";
 
 interface ImageGalleryProps {
   images: ImageFile[];
   setImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-  setAnnotations: React.Dispatch<React.SetStateAction<Annotation[][]>>;
   setSelectedImageInfo: React.Dispatch<React.SetStateAction<SelectedImage | null>>;
 }
 
 const ImageGallery: React.FC<ImageGalleryProps> = ({
   images,
   setImages,
-  setAnnotations,
   setSelectedImageInfo,
 }) => {
+  const [page, setPage] = useState(0);
+
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-    const imageList = imageFiles.map((file) => ({
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
-    setImages(imageList);
-    setAnnotations(Array.from({ length: imageList.length }, () => []))
-    for (const imageFile of imageList) {
-      postImage({
-        imageName: imageFile.name,
-        imageURL: imageFile.url,
-        annotations: []
-      })
+    if (files) {
+      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+      const imageList = imageFiles.map((file) => ({
+        imageName: file.name,
+        imageURL: URL.createObjectURL(file),
+      }));
+      setImages(imageList.slice(0, 10))
+      // Can't use forEach, doesn't allow async fns
+      for (const imageFile of imageList) {
+        postImage({
+          imageName: imageFile.imageName,
+          imageURL: imageFile.imageURL,
+          annotations: []
+        })
+      }
+      setSelectedImageInfo(null);
     }
-    setSelectedImageInfo(null);
   };
 
   const handleImageClick = (image: ImageFile, index: number) => {
     setSelectedImageInfo({image: image, imageIndex: index})
   };
 
+  const prevPage = async (currentPage: number) => {
+    if (currentPage - 1 >= 0){
+      setPage((p) => p > 0 ? p - 1 : p)
+      const imageEntries = await getImagesPaginated(currentPage - 1)
+      const imageFiles: ImageFile[] = imageEntries
+      setImages(imageFiles)
+    }
+  }
+
+  const nextPage = async (currentPage: number) => {
+    // Should make a request that confirms whether page number exists.
+    // Currently works because if page number doesn't exist, error returned.
+    const imageEntries = await getImagesPaginated(currentPage + 1)
+    const imageFiles: ImageFile[] = imageEntries
+    if (imageFiles.length > 0){
+      setPage((p) => p + 1)
+    }
+    setImages(imageFiles)
+  }
+
+  useEffect(() => {
+    const handleSideArrowKeys = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        prevPage(page)
+      } else if (event.key === "ArrowRight") {
+        nextPage(page)
+      }
+    };
+  
+    window.addEventListener("keydown", handleSideArrowKeys)
+    return () => {
+      window.removeEventListener("keydown", handleSideArrowKeys)
+    }
+  }, [page]);
+  
+  
   return (
     <div className="p-8 h-full flex flex-col">
+      {/* File Input */}
       <input
         type="file"
         multiple
@@ -52,9 +86,10 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
         onChange={handleFileInput}
         className="image-input"
       />
-      <div className="flex gap-8 max-h-full">
+      {/* Image List */}
+      <div className="flex gap-8 h-5/6">
         <div className="w-full h-full">
-            <ul className="space-y-4 max-h-[calc(100%-64px)] overflow-y-auto bg-gray-800 rounded-md p-4 hide-scrollbar">
+            <ul className="space-y-4 max-h-full overflow-y-auto bg-gray-800 rounded-md p-4 hide-scrollbar">
                 {images.map((image, index) => (
                 <li
                     key={index}
@@ -62,106 +97,32 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
                     onClick={() => handleImageClick(image, index)}
                 >
                     <img
-                    src={image.url}
-                    alt={image.name}
-                    className="w-12 h-12 object-cover rounded-md"
+                      src={image.imageURL}
+                      alt={image.imageName}
+                      className="w-12 h-12 object-cover rounded-md"
                     />
-                    <span className="ml-4 text-white">{image.name}</span>
+                    <span className="ml-4 text-white">{image.imageName}</span>
                 </li>
                 ))}
             </ul>
         </div>
+      </div>
+      {/* Buttons and Instructions */}
+      <div className="flex justify-between items-center mt-4 h-1/12">
+        <button className="page-button" onClick={() => prevPage(page)}>
+          &#8592; Previous Page
+        </button>
+        <button className="page-button" onClick={() => nextPage(page)}>
+          Next Page &#8594;
+        </button>
+      </div>
+      <div className="h-1/12">
+        <p className="mt-2 text-center text-sm text-gray-400">
+          Use the up and down arrow keys to change images. Use the left and right arrow keys to change pages.
+        </p>
       </div>
     </div>
   );
 };
 
 export default ImageGallery;
-
-// import React from "react";
-// import { FixedSizeList as List } from "react-window"; // New import
-// import { Annotation, SelectedImage } from "../helper/types";
-// import { postImage } from "../helper/server";
-
-// interface ImageFile {
-//   name: string;
-//   url: string;
-// }
-
-// interface ImageGalleryProps {
-//   images: ImageFile[];
-//   setImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-//   setAnnotations: React.Dispatch<React.SetStateAction<Annotation[][]>>;
-//   setSelectedImageInfo: React.Dispatch<React.SetStateAction<SelectedImage | null>>;
-// }
-
-// const ImageGallery: React.FC<ImageGalleryProps> = ({
-//   images,
-//   setImages,
-//   setAnnotations,
-//   setSelectedImageInfo,
-// }) => {
-//   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-//     const files = event.target.files ? Array.from(event.target.files) : [];
-//     const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-//     const imageList = imageFiles.map((file) => ({
-//       name: file.name,
-//       url: URL.createObjectURL(file),
-//     }));
-//     setImages(imageList);
-//     setAnnotations(Array.from({ length: imageList.length }, () => []));
-//     for (const imageFile of imageList) {
-//       postImage({
-//         imageName: imageFile.name,
-//         imageURL: imageFile.url,
-//         annotations: [],
-//       });
-//     }
-//     setSelectedImageInfo(null);
-//   };
-
-//   const handleImageClick = (image: ImageFile, index: number) => {
-//     setSelectedImageInfo({ image: image, imageIndex: index });
-//   };
-
-//   const renderImageItem = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-//     const image = images[index];
-//     return (
-//       <li
-//         style={style}
-//         key={index}
-//         className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded-md"
-//         onClick={() => handleImageClick(image, index)}
-//       >
-//         <img src={image.url} alt={image.name} className="w-12 h-12 object-cover rounded-md" />
-//         <span className="ml-4 text-white">{image.name}</span>
-//       </li>
-//     );
-//   };
-
-//   return (
-//     <div className="p-8 h-full flex flex-col">
-//       <input
-//         type="file"
-//         multiple
-//         accept="image/*"
-//         onChange={handleFileInput}
-//         className="image-input"
-//       />
-//       <div className="flex gap-8 h-full">
-//         <div className="w-full h-full">
-//           <List
-//             height={600} // Set to match your container's height
-//             itemCount={images.length}
-//             itemSize={64} // Approximate height of each item (adjust as needed)
-//             width="100%"
-//           >
-//             {renderImageItem}
-//           </List>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ImageGallery;

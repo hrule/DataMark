@@ -1,29 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Annotation, ImageFile, SelectedImage } from "../helper/types";
 import { removeRectangle } from "../helper/view";
-import { deleteAnnotationFromImage } from "../helper/server";
+import { deleteAnnotationFromImage, getAnnotationsByImageName } from "../helper/server";
 
 interface ImageAnnotationProps {
-  annotations: Annotation[][];
   images: ImageFile[];
   selectedImageInfo: SelectedImage | null;
   fabricCanvas: fabric.Canvas | null;
+  annotationCount: number;
 }
 
 const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
-  annotations,
   images,
   selectedImageInfo,
   fabricCanvas,
+  annotationCount,
 }) => {
-  const [showFullDetails, setShowFullDetails] = useState(false);
+  const [selectedImageAnnotations, setSelectedImageAnnotations] = useState<Annotation[]>([])
+  const [showFullDetails, setShowFullDetails] = useState<boolean>(false);
 
   const handleDelete = (annotationId: string) => {
     if (fabricCanvas && selectedImageInfo) {
       removeRectangle(fabricCanvas, annotationId)
-      deleteAnnotationFromImage(selectedImageInfo.image.name, annotationId)
+      deleteAnnotationFromImage(selectedImageInfo.image.imageName, annotationId)
+      // Might be more efficient to filter out the annotation from the array, than refetch everything. 
+      setSelectedImageAnnotations((prevAnnotations) =>
+        prevAnnotations.filter((annotation) => annotation.annotationId !== annotationId)
+      );
     }
   };
+
+  useEffect(() => {
+    async function getSelectedImageAnnotations() {
+      if (selectedImageInfo) {
+        const annotations = await getAnnotationsByImageName(selectedImageInfo.image.imageName)
+        setSelectedImageAnnotations(annotations);
+      }
+    }
+    getSelectedImageAnnotations();
+  }, [selectedImageInfo, annotationCount])
 
   return (
     <div className="h-full p-4">
@@ -47,14 +62,15 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
         selectedImageInfo?.imageIndex <= images.length - 1) ? (
         <>
           <h2 className="text-white font-bold mb-2">
-            {images[selectedImageInfo.imageIndex].name}
+            {images[selectedImageInfo.imageIndex].imageName}
           </h2>
 
           <ul className="overflow-y-auto max-h-80 bg-gray-700 rounded p-2">
-            {annotations[selectedImageInfo.imageIndex].map((annotation, index) => (
+
+            {selectedImageAnnotations.map((annotation, index) => (
               <li
                 key={index}
-                className="p-2 rounded cursor-pointer bg-blue-500 text-white break-words whitespace-pre-wrap max-w-full mb-2 flex justify-between items-center"
+                className="p-2 rounded cursor-pointer bg-blue-500 text-white break-words whitespace-pre-wrap max-w-full flex justify-between items-center"
               >
                 <span>
                   {showFullDetails

@@ -1,4 +1,4 @@
-export type {State, Action, FabricMouseEvent, ImageFile, Rectangle, Annotation, SelectedImage, Key, Event, APIImage};
+export type {State, Action, FabricMouseEvent, ImageFile, Rectangle, Annotation, SelectedImage, Key, Event, APIImage, APIImageEntry};
 export {Mode, MouseMove, MouseDown, MouseUp, SwitchMode, NextImage, PrevImage, reduceState, UNSELECTABLE_IMAGE_PROPS}
 
 /** Constants */
@@ -18,7 +18,7 @@ const UNSELECTABLE_IMAGE_PROPS = {
 /**
  * a string literal type for each key used 
  */
-type Key = "ArrowUp" | "ArrowDown";
+type Key = "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight";
 /**
  * a string literal type for each key event used
  */
@@ -33,10 +33,10 @@ interface FabricMouseEvent {
     button: number; 
     isClick: boolean; 
 }
-  
-interface ImageFile {
-    name: string;
-    url: string;
+
+type ImageFile = {
+    imageName: string;
+    imageURL: string;
 }
 
 type Rectangle = Readonly<{
@@ -46,25 +46,20 @@ type Rectangle = Readonly<{
     height: number; 
 }>
 
-// type Annotation = Rectangle & Readonly<{
-//     labelIndex: number;
-// }>
-
-// Experimenting with annotation Id, for search and delete.
-// Needed for canvas and database. 
 type Annotation = Rectangle & Readonly<{
     labelIndex: number;
     annotationId: string;
 }>
 
 /** API types. */
-
-type APIImage = {
-    imageName: string;
-    imageURL: string;
+// Used when retrieving from API. Can cast down to ImageFile
+type APIImage = ImageFile & Readonly<{
     annotations: Annotation[];
-}
+}>
 
+type APIImageEntry = {
+    id: string
+} & APIImage
 
 /** State processing */
 

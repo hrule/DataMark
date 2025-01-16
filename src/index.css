@@ -24,7 +24,7 @@
   }
 
   .image-input {
-    @apply w-full max-h-full text-gray-500 mb-4
+    @apply w-full max-h-36 text-gray-500 mb-4
     file:mr-4 file:py-2 
     file:px-4 file:rounded-md file:border-0 file:text-sm 
     file:font-semibold file:bg-blue-50 file:text-blue-700
@@ -33,6 +33,10 @@
 
   .panel-heading {
     @apply text-white text-lg font-bold mb-2
+  }
+
+  .page-button {
+    @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700
   }
 }
 
