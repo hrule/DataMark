@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Annotation, ImageFile, SelectedImage } from "../helper/types";
 import { removeRectangle } from "../helper/view";
 import { deleteAnnotationFromImage, getAnnotationsByImageName } from "../helper/server";
+import AnnotationList from "./AnnotationList";
 
 interface ImageAnnotationProps {
   images: ImageFile[];
@@ -57,7 +58,7 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
       </div>
 
       {(images.length > 0 &&
-        selectedImageInfo?.imageIndex !== undefined &&
+        selectedImageInfo !== null &&
         selectedImageInfo?.imageIndex >= 0 &&
         selectedImageInfo?.imageIndex <= images.length - 1) ? (
         <>
@@ -65,27 +66,11 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
             {images[selectedImageInfo.imageIndex].imageName}
           </h2>
 
-          <ul className="overflow-y-auto max-h-80 bg-gray-700 rounded p-2">
-
-            {selectedImageAnnotations.map((annotation, index) => (
-              <li
-                key={index}
-                className="p-2 rounded cursor-pointer bg-blue-500 text-white break-words whitespace-pre-wrap max-w-full flex justify-between items-center"
-              >
-                <span>
-                  {showFullDetails
-                    ? JSON.stringify(annotation, null, "\t")
-                    : `ID: ${annotation.annotationId}`}
-                </span>
-                <button
-                  onClick={() => handleDelete(annotation.annotationId)}
-                  className="ml-2 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
+          <AnnotationList 
+            annotations={selectedImageAnnotations}
+            showFullDetails={showFullDetails}
+            onDelete={handleDelete}
+          />
         </>
       ) : (
         <></>

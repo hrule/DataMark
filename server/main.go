@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type annotation struct {
+type Annotation struct {
 	AnnotationId string  `json:"annotationId" bson:"annotationId"`
 	LabelIndex   int     `json:"labelIndex" bson:"labelIndex"`
 	Left         float32 `json:"left" bson:"left"`
@@ -24,24 +25,24 @@ type annotation struct {
 	Height       float32 `json:"height" bson:"height"`
 }
 
-type image struct {
+type Image struct {
 	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	ImageName   string             `json:"imageName" bson:"imageName"`
 	ImageURL    string             `json:"imageURL" bson:"imageURL"`
-	Annotations []annotation       `json:"annotations" bson:"annotations"`
+	Annotations []Annotation       `json:"annotations" bson:"annotations"`
 }
 
-var collection *mongo.Collection
+var Collection *mongo.Collection
 
-func createImage(c *gin.Context) {
-	var newImage image
+func CreateImage(c *gin.Context) {
+	var newImage Image
 
 	if err := c.BindJSON(&newImage); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	result, err := collection.InsertOne(context.TODO(), newImage)
+	result, err := Collection.InsertOne(context.TODO(), newImage)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert image entry"})
 		return
@@ -50,10 +51,10 @@ func createImage(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, gin.H{"id": result.InsertedID})
 }
 
-func getImages(c *gin.Context) {
-	var images []image
+func GetImages(c *gin.Context) {
+	var images []Image
 
-	cursor, err := collection.Find(context.TODO(), bson.M{})
+	cursor, err := Collection.Find(context.TODO(), bson.M{})
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch image entries"})
 		return
@@ -68,8 +69,8 @@ func getImages(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, images)
 }
 
-func getImagesPaginated(c *gin.Context) {
-	var images []image
+func GetImagesPaginated(c *gin.Context) {
+	var images []Image
 	pageStr := c.DefaultQuery("page", "0")
 	limitStr := c.DefaultQuery("limit", "10")
 
@@ -89,7 +90,7 @@ func getImagesPaginated(c *gin.Context) {
 
 	// Find with limit and skip for pagination
 	options := options.Find().SetSkip(int64(skip)).SetLimit(int64(limit))
-	cursor, err := collection.Find(context.TODO(), bson.M{}, options)
+	cursor, err := Collection.Find(context.TODO(), bson.M{}, options)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch image entries"})
 		return
@@ -104,11 +105,11 @@ func getImagesPaginated(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, images)
 }
 
-func getAnnotationsByImageName(c *gin.Context) {
+func GetAnnotationsByImageName(c *gin.Context) {
 	imageName := c.Param("imageName")
-	var image image
+	var image Image
 
-	err := collection.FindOne(context.TODO(), bson.D{{Key: "imageName", Value: imageName}}).Decode(&image)
+	err := Collection.FindOne(context.TODO(), bson.D{{Key: "imageName", Value: imageName}}).Decode(&image)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Failed to find image entry."})
 		return
@@ -117,8 +118,8 @@ func getAnnotationsByImageName(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, image.Annotations)
 }
 
-func deleteAllImages(c *gin.Context) {
-	dr, err := collection.DeleteMany(context.TODO(), bson.D{})
+func DeleteAllImages(c *gin.Context) {
+	dr, err := Collection.DeleteMany(context.TODO(), bson.D{})
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Error occurred trying to delete all."})
 		return
@@ -126,41 +127,9 @@ func deleteAllImages(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"deletedCount": dr.DeletedCount})
 }
 
-// func addAnnotationToImage(c *gin.Context) {
-// 	imageName, ok := c.GetQuery("imageName")
-// 	if !ok {
-// 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Missing imageName query parameter."})
-// 		return
-// 	}
-
-// 	var newAnnotation annotation
-
-// 	if err := c.BindJSON(&newAnnotation); err != nil {
-// 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-// 		return
-// 	}
-
-// 	filter := bson.D{{Key: "imageName", Value: imageName}}
-// 	update := bson.D{{Key: "$push", Value: bson.D{{Key: "annotations", Value: newAnnotation}}}}
-
-// 	result, err := collection.UpdateOne(context.TODO(), filter, update)
-// 	if err != nil {
-// 		log.Printf("Failed to update annotations for image '%s': %v\n", imageName, err)
-// 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add annotation"})
-// 		return
-// 	}
-
-// 	if result.MatchedCount == 0 {
-// 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Image not found"})
-// 		return
-// 	}
-
-// 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation added successfully"})
-// }
-
-func addAnnotationToImage(c *gin.Context) {
+func AddAnnotationToImage(c *gin.Context) {
 	imageName := c.Param("imageName")
-	var newAnnotation annotation
+	var newAnnotation Annotation
 
 	if err := c.BindJSON(&newAnnotation); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -170,7 +139,7 @@ func addAnnotationToImage(c *gin.Context) {
 	filter := bson.D{{Key: "imageName", Value: imageName}}
 	update := bson.D{{Key: "$push", Value: bson.D{{Key: "annotations", Value: newAnnotation}}}}
 
-	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	result, err := Collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Printf("Failed to update annotations for image '%s': %v\n", imageName, err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add annotation"})
@@ -185,14 +154,14 @@ func addAnnotationToImage(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation added successfully"})
 }
 
-func deleteAnnotationFromImage(c *gin.Context) {
+func DeleteAnnotationFromImage(c *gin.Context) {
 	imageName := c.Param("imageName")
 	annotationId := c.Param("annotationId")
 
 	filter := bson.M{"imageName": imageName}
 	update := bson.M{"$pull": bson.M{"annotations": bson.M{"annotationId": annotationId}}}
 
-	result, err := collection.UpdateOne(context.TODO(), filter, update)
+	result, err := Collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil || result.MatchedCount == 0 {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Image or annotation not found"})
 		return
@@ -200,8 +169,26 @@ func deleteAnnotationFromImage(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation deleted successfully"})
 }
 
+func getMongoURI() string {
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		return "mongodb://localhost:27017" // Default for development
+	}
+	return uri
+}
+
 func main() {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
+	// mongoURI := os.Getenv("MONGO_URI")
+	// dbName := os.Getenv("DATABASE_NAME")
+	// collectionName := os.Getenv("COLLECTION_NAME")
+
+	clientOptions := options.Client().ApplyURI(getMongoURI())
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		log.Fatal("Connection error:", err)
@@ -218,21 +205,21 @@ func main() {
 	fmt.Println("Successfully connected to MongoDB!")
 
 	db := client.Database("annotationdb")
-	collection = db.Collection("annotations")
+	Collection = db.Collection("annotations")
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
 	// GET
-	router.GET("/images", getImages)
-	router.GET("/images/paginated", getImagesPaginated)
-	router.GET("/images/:imageName/annotations", getAnnotationsByImageName)
+	router.GET("/images", GetImages)
+	router.GET("/images/paginated", GetImagesPaginated)
+	router.GET("/images/:imageName/annotations", GetAnnotationsByImageName)
 	// POST
-	router.POST("/images", createImage)
-	router.POST("/images/:imageName/annotations", addAnnotationToImage)
+	router.POST("/images", CreateImage)
+	router.POST("/images/:imageName/annotations", AddAnnotationToImage)
 	// DELETE
-	router.DELETE("/images", deleteAllImages)
-	router.DELETE("/images/:imageName/annotations/:annotationId", deleteAnnotationFromImage)
+	router.DELETE("/images", DeleteAllImages)
+	router.DELETE("/images/:imageName/annotations/:annotationId", DeleteAnnotationFromImage)
 
 	router.Run("localhost:8080")
 }

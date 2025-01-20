@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ImageFile, SelectedImage } from "../helper/types";
 import { getImagesPaginated, postImage } from "../helper/server";
+import ImageList from "./ImageList";
 
 interface ImageGalleryProps {
   images: ImageFile[];
@@ -89,22 +90,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
       {/* Image List */}
       <div className="flex gap-8 h-5/6">
         <div className="w-full h-full">
-            <ul className="space-y-4 max-h-full overflow-y-auto bg-gray-800 rounded-md p-4 hide-scrollbar">
-                {images.map((image, index) => (
-                <li
-                    key={index}
-                    className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded-md"
-                    onClick={() => handleImageClick(image, index)}
-                >
-                    <img
-                      src={image.imageURL}
-                      alt={image.imageName}
-                      className="w-12 h-12 object-cover rounded-md"
-                    />
-                    <span className="ml-4 text-white">{image.imageName}</span>
-                </li>
-                ))}
-            </ul>
+          <ImageList images={images} imageClick={handleImageClick}/>
         </div>
       </div>
       {/* Buttons and Instructions */}

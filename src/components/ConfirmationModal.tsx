@@ -11,7 +11,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ unannotatedCount,
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-slate-700 p-6 rounded shadow-xl text-center">
                 <p className="mb-4 text-lg">
-                    There seems to be {unannotatedCount} image{unannotatedCount !== 1 ? 's' : ''} that are not currently annotated. Proceed with download?
+                    There seems to be {unannotatedCount} unannotated image{unannotatedCount !== 1 ? 's' : ''}. Proceed with download?
                 </p>
                 <div className="flex justify-center gap-4">
                     <button
