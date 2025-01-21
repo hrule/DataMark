@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import { Annotation, ImageFile, SelectedImage } from "../helper/types";
-import { removeRectangle } from "../helper/view";
-import { deleteAnnotationFromImage, getAnnotationsByImageName } from "../helper/server";
+import { useState } from "react";
+import { ImageFile, SelectedImage } from "../helper/types";
 import AnnotationList from "./AnnotationList";
 
 interface ImageAnnotationProps {
@@ -17,29 +15,7 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
   fabricCanvas,
   annotationCount,
 }) => {
-  const [selectedImageAnnotations, setSelectedImageAnnotations] = useState<Annotation[]>([])
   const [showFullDetails, setShowFullDetails] = useState<boolean>(false);
-
-  const handleDelete = (annotationId: string) => {
-    if (fabricCanvas && selectedImageInfo) {
-      removeRectangle(fabricCanvas, annotationId)
-      deleteAnnotationFromImage(selectedImageInfo.image.imageName, annotationId)
-      // Might be more efficient to filter out the annotation from the array, than refetch everything. 
-      setSelectedImageAnnotations((prevAnnotations) =>
-        prevAnnotations.filter((annotation) => annotation.annotationId !== annotationId)
-      );
-    }
-  };
-
-  useEffect(() => {
-    async function getSelectedImageAnnotations() {
-      if (selectedImageInfo) {
-        const annotations = await getAnnotationsByImageName(selectedImageInfo.image.imageName)
-        setSelectedImageAnnotations(annotations);
-      }
-    }
-    getSelectedImageAnnotations();
-  }, [selectedImageInfo, annotationCount])
 
   return (
     <div className="h-full p-4">
@@ -67,9 +43,10 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
           </h2>
 
           <AnnotationList 
-            annotations={selectedImageAnnotations}
+            selectedImageInfo={selectedImageInfo}
             showFullDetails={showFullDetails}
-            onDelete={handleDelete}
+            fabricCanvas={fabricCanvas}
+            annotationCount={annotationCount}
           />
         </>
       ) : (

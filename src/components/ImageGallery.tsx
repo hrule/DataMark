@@ -33,7 +33,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
           annotations: []
         })
       }
-      setSelectedImageInfo(null);
+      // In the case of changing file input, make selected image empty. 
+      setSelectedImageInfo((prev) => prev ? null : prev);
     }
   };
 
@@ -86,6 +87,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
         accept="image/*"
         onChange={handleFileInput}
         className="image-input"
+        id="image-upload"
       />
       {/* Image List */}
       <div className="flex gap-8 h-5/6">

@@ -1,6 +1,6 @@
-import { Annotation, APIImage, APIImageEntry } from "./types";
+import { Annotation, APIImage, APIImageEntry, APILabel } from "./types";
 
-export { getData, postData, postImage, postAnnotationToImage, deleteAnnotationFromImage, getImagesPaginated, getAnnotationsByImageName, getAllData }
+export { getData, postData, postImage, postAnnotationToImage, deleteAnnotationFromImage, getImagesPaginated, getAnnotationsByImageName, getAllData, deleteAllData, postLabel, getLabels }
 
 const BASE_URL = 'http://localhost:5173/api'; // Using a proxy
 
@@ -89,4 +89,17 @@ const getAnnotationsByImageName = async (imageName: string) => {
 
 const getAllData = async () => {
   return await getData<APIImageEntry[]>("/images")
+}
+
+const deleteAllData = () => {
+  deleteData("/images")
+  deleteData("/labels")
+}
+
+const postLabel = (labelName: string) => {
+  postData("/labels", JSON.stringify({labelName: labelName}))
+}
+
+const getLabels = async () => {
+  return await getData<APILabel[]>("/labels")
 }

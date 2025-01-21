@@ -4,7 +4,7 @@ import ExportButton from "./ExportButton";
 import JSZip from "jszip"; 
 import { saveAs } from "file-saver"; 
 import ConfirmationModal from "./ConfirmationModal";
-import { getAllData } from "../helper/server";
+import { getAllData, getLabels } from "../helper/server";
 
 const Export = () => {
     const unannotatedCount = useRef(0)
@@ -73,6 +73,11 @@ const Export = () => {
             }
         }
 
+        const yamlContent = await generateYAML();
+        if (yamlContent) {
+            zip.file("data.yaml", yamlContent);
+        }
+
         zip.generateAsync({ type: "blob" }).then((blob) => {
             saveAs(blob, "annotations.zip");
         });
@@ -82,6 +87,26 @@ const Export = () => {
         return `${annotation.labelIndex} ${annotation.left} ${annotation.top} ${annotation.width} ${annotation.height}`
     }
     
+    const generateYAML = async () => {
+        try {
+            const labels = await getLabels()
+            const labelNames = labels.map((label) => label.labelName)
+            const labelNamesString = labelNames.reduce((acc, name) => acc + `\'${name}\', `, "").slice(0, -2)
+
+            const yamlLines = [
+                `train: ../train/images`,
+                `val: ../valid/images`,
+                `test: ../test/images\n`,
+                `nc: ${labels.length}`,
+                `names: [${labelNamesString}]`
+            ];
+            return yamlLines.join("\n");
+        } catch (err) {
+            console.log(err)
+            return 
+        }
+    };
+
     // const convertAnnotationsToFormat = (annotations: Annotation[][], formats: string[], selectedFormat: string) => {
     //     if (formats.includes(selectedFormat)) {
     //         return annotations

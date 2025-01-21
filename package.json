@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "e2e": "cypress open"
   },
   "dependencies": {
     "fabric": "^4.6.0",
@@ -33,6 +34,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^2.1.8",
     "autoprefixer": "^10.4.20",
+    "cypress": "^14.0.0",
+    "cypress-file-upload": "^5.0.8",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",

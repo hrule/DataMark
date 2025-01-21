@@ -18,7 +18,7 @@ import { getImagesPaginated } from "./helper/server"
 
 function App() {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
-  const imageInputRef = useRef<HTMLInputElement | null>(null) 
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   const [images, setImages] = useState<ImageFile[]>([])
   const imagesRef = useRef<ImageFile[]>(images)
@@ -55,13 +55,17 @@ function App() {
 
     // Load from database currently stored info. 
     async function loadDatabaseState() {
-      const firstPage = await getImagesPaginated(0)
-      if (firstPage.length > 0) {
-        setImages(firstPage)
-        setSelectedImageInfo((_) => ({
-          image: firstPage[0],
-          imageIndex: 0
-        }))
+      try {
+        const firstPage = await getImagesPaginated(0)
+        if (firstPage.length > 0) {
+          setImages(firstPage)
+          setSelectedImageInfo((_) => ({
+            image: firstPage[0],
+            imageIndex: 0
+          }))
+        }
+      } catch (error) {
+        return 
       }
     }
 

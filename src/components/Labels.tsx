@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { deleteAllData, getLabels, postLabel } from "../helper/server";
 
 interface LabelsProps {
   labels: string[],
@@ -13,19 +14,36 @@ const Labels:React.FC<LabelsProps> = ({
   selectedLabelIndex,
   setSelectedLabelIndex
 }) => {
-    
     const [newLabel, setNewLabel] = useState<string>("");
   
     const addLabel = () => {
       if (newLabel.trim() && !labels.includes(newLabel)) {
         setLabels([...labels, newLabel]);
         setNewLabel("");
+        postLabel(newLabel)
       }
     };
+
+    useEffect(() => {
+      async function loadLabels() {
+        try {
+          const labels = await getLabels()
+          setLabels(labels.map(label => label.labelName))
+        } catch (error) {
+          return
+        }
+      }
+      loadLabels()
+    }, [])
   
     return (
       <div className="p-4 h-full bg-gray-800 rounded-md flex flex-col">
-        <h2 className="panel-heading">Labels</h2>
+        <div className="flex flex-row justify-between">
+          <h2 className="panel-heading">Labels</h2>
+          <button className="bg-red-500 text-white rounded-md w-32" onClick={deleteAllData}>
+            Restart
+          </button>
+        </div>
   
         {labels.length > 0 ? (
           <ul className="mb-4 overflow-y-auto hide-scrollbar">
@@ -42,7 +60,7 @@ const Labels:React.FC<LabelsProps> = ({
             ))}
           </ul>
         ) : (
-          <p className="text-gray-400 mb-4">No labels. Add one and click on it to select it and start annotating.</p>
+          <p className="text-gray-400 mb-4">No labels. Add one and click on it to select it and start annotating. Restart to delete all information.</p>
         )}
 
         <input
@@ -51,6 +69,7 @@ const Labels:React.FC<LabelsProps> = ({
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
           className="w-full p-2 mb-2 rounded bg-gray-600 text-white"
+          id="label-input"
         />
         
         <button

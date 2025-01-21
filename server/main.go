@@ -32,8 +32,18 @@ type Image struct {
 	Annotations []Annotation       `json:"annotations" bson:"annotations"`
 }
 
-var Collection *mongo.Collection
+type Label struct {
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	LabelName string             `json:"labelName" bson:"labelName"`
+}
 
+// var Collection *mongo.Collection
+var (
+	ImageCollection *mongo.Collection
+	LabelCollection *mongo.Collection
+)
+
+// Image Handlers
 func CreateImage(c *gin.Context) {
 	var newImage Image
 
@@ -42,7 +52,7 @@ func CreateImage(c *gin.Context) {
 		return
 	}
 
-	result, err := Collection.InsertOne(context.TODO(), newImage)
+	result, err := ImageCollection.InsertOne(context.TODO(), newImage)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert image entry"})
 		return
@@ -54,7 +64,7 @@ func CreateImage(c *gin.Context) {
 func GetImages(c *gin.Context) {
 	var images []Image
 
-	cursor, err := Collection.Find(context.TODO(), bson.M{})
+	cursor, err := ImageCollection.Find(context.TODO(), bson.M{})
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch image entries"})
 		return
@@ -90,7 +100,7 @@ func GetImagesPaginated(c *gin.Context) {
 
 	// Find with limit and skip for pagination
 	options := options.Find().SetSkip(int64(skip)).SetLimit(int64(limit))
-	cursor, err := Collection.Find(context.TODO(), bson.M{}, options)
+	cursor, err := ImageCollection.Find(context.TODO(), bson.M{}, options)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch image entries"})
 		return
@@ -109,7 +119,7 @@ func GetAnnotationsByImageName(c *gin.Context) {
 	imageName := c.Param("imageName")
 	var image Image
 
-	err := Collection.FindOne(context.TODO(), bson.D{{Key: "imageName", Value: imageName}}).Decode(&image)
+	err := ImageCollection.FindOne(context.TODO(), bson.D{{Key: "imageName", Value: imageName}}).Decode(&image)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Failed to find image entry."})
 		return
@@ -119,7 +129,7 @@ func GetAnnotationsByImageName(c *gin.Context) {
 }
 
 func DeleteAllImages(c *gin.Context) {
-	dr, err := Collection.DeleteMany(context.TODO(), bson.D{})
+	dr, err := ImageCollection.DeleteMany(context.TODO(), bson.D{})
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Error occurred trying to delete all."})
 		return
@@ -139,7 +149,7 @@ func AddAnnotationToImage(c *gin.Context) {
 	filter := bson.D{{Key: "imageName", Value: imageName}}
 	update := bson.D{{Key: "$push", Value: bson.D{{Key: "annotations", Value: newAnnotation}}}}
 
-	result, err := Collection.UpdateOne(context.TODO(), filter, update)
+	result, err := ImageCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Printf("Failed to update annotations for image '%s': %v\n", imageName, err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to add annotation"})
@@ -161,12 +171,69 @@ func DeleteAnnotationFromImage(c *gin.Context) {
 	filter := bson.M{"imageName": imageName}
 	update := bson.M{"$pull": bson.M{"annotations": bson.M{"annotationId": annotationId}}}
 
-	result, err := Collection.UpdateOne(context.TODO(), filter, update)
+	result, err := ImageCollection.UpdateOne(context.TODO(), filter, update)
 	if err != nil || result.MatchedCount == 0 {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Image or annotation not found"})
 		return
 	}
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation deleted successfully"})
+}
+
+// Label Handlers
+func CreateLabel(c *gin.Context) {
+	var newLabel Label
+
+	if err := c.BindJSON(&newLabel); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	result, err := LabelCollection.InsertOne(context.TODO(), newLabel)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert label entry"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusCreated, gin.H{"id": result.InsertedID})
+}
+
+func GetLabels(c *gin.Context) {
+	var labels []Label
+
+	cursor, err := LabelCollection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch labels"})
+		return
+	}
+	defer cursor.Close(context.TODO())
+
+	if err := cursor.All(context.TODO(), &labels); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode label entries"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, labels)
+}
+
+func DeleteAllLabels(c *gin.Context) {
+	dr, err := LabelCollection.DeleteMany(context.TODO(), bson.D{})
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Error occurred trying to delete all."})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"deletedCount": dr.DeletedCount})
+}
+
+func DeleteLabel(c *gin.Context) {
+	labelName := c.Param("name")
+
+	result, err := LabelCollection.DeleteOne(context.TODO(), bson.M{"name": labelName})
+	if err != nil || result.DeletedCount == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "Label not found"})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Label deleted successfully"})
 }
 
 func getMongoURI() string {
@@ -205,11 +272,13 @@ func main() {
 	fmt.Println("Successfully connected to MongoDB!")
 
 	db := client.Database("annotationdb")
-	Collection = db.Collection("annotations")
+	ImageCollection = db.Collection("annotations")
+	LabelCollection = db.Collection("labels")
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
+	// ========= Image Endpoints
 	// GET
 	router.GET("/images", GetImages)
 	router.GET("/images/paginated", GetImagesPaginated)
@@ -220,6 +289,12 @@ func main() {
 	// DELETE
 	router.DELETE("/images", DeleteAllImages)
 	router.DELETE("/images/:imageName/annotations/:annotationId", DeleteAnnotationFromImage)
+
+	// ========== Label Endpoints
+	router.GET("/labels", GetLabels)
+	router.POST("/labels", CreateLabel)
+	router.DELETE("/labels", DeleteAllLabels)
+	router.DELETE("/labels/:name", DeleteLabel)
 
 	router.Run("localhost:8080")
 }
