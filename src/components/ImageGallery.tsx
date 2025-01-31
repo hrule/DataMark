@@ -1,30 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { ImageFile, SelectedImage } from "../helper/types";
+import React, { useContext, useEffect, useState } from "react";
+import { ImageFile } from "../helper/types";
 import { getImagesPaginated, postImage } from "../helper/server";
 import ImageList from "./ImageList";
+import { ImageContext } from "../helper/provider";
 
-interface ImageGalleryProps {
-  images: ImageFile[];
-  setImages: React.Dispatch<React.SetStateAction<ImageFile[]>>;
-  setSelectedImageInfo: React.Dispatch<React.SetStateAction<SelectedImage | null>>;
-}
 
-const ImageGallery: React.FC<ImageGalleryProps> = ({
-  images,
-  setImages,
-  setSelectedImageInfo,
-}) => {
+const ImageGallery = () => {
   const [page, setPage] = useState(0);
+
+  const imageCtx = useContext(ImageContext)
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
-    if (files) {
+    if (files && imageCtx !== undefined) {
       const imageFiles = files.filter((file) => file.type.startsWith("image/"));
       const imageList = imageFiles.map((file) => ({
         imageName: file.name,
         imageURL: URL.createObjectURL(file),
       }));
-      setImages(imageList.slice(0, 10))
+      imageCtx.setImages(imageList.slice(0, 10))
       // Can't use forEach, doesn't allow async fns
       for (const imageFile of imageList) {
         postImage({
@@ -34,20 +28,20 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
         })
       }
       // In the case of changing file input, make selected image empty. 
-      setSelectedImageInfo((prev) => prev ? null : prev);
+      imageCtx.setSelectedImageInfo((prev) => prev ? null : prev);
     }
   };
 
   const handleImageClick = (image: ImageFile, index: number) => {
-    setSelectedImageInfo({image: image, imageIndex: index})
+    imageCtx?.setSelectedImageInfo({image: image, imageIndex: index})
   };
 
   const prevPage = async (currentPage: number) => {
-    if (currentPage - 1 >= 0){
+    if (currentPage - 1 >= 0 && imageCtx !== undefined){
       setPage((p) => p > 0 ? p - 1 : p)
       const imageEntries = await getImagesPaginated(currentPage - 1)
       const imageFiles: ImageFile[] = imageEntries
-      setImages(imageFiles)
+      imageCtx.setImages(imageFiles)
     }
   }
 
@@ -59,7 +53,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
     if (imageFiles.length > 0){
       setPage((p) => p + 1)
     }
-    setImages(imageFiles)
+    imageCtx?.setImages(imageFiles)
   }
 
   useEffect(() => {
@@ -92,7 +86,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
       {/* Image List */}
       <div className="flex gap-8 h-5/6">
         <div className="w-full h-full">
-          <ImageList images={images} imageClick={handleImageClick}/>
+          {/* <ImageList images={images} imageClick={handleImageClick}/> */}
+          <ImageList imageClick={handleImageClick}/>
         </div>
       </div>
       {/* Buttons and Instructions */}

@@ -1,21 +1,19 @@
-import { useState } from "react";
-import { ImageFile, SelectedImage } from "../helper/types";
+import { useContext, useState } from "react";
 import AnnotationList from "./AnnotationList";
+import { ImageContext } from "../helper/provider";
 
 interface ImageAnnotationProps {
-  images: ImageFile[];
-  selectedImageInfo: SelectedImage | null;
   fabricCanvas: fabric.Canvas | null;
   annotationCount: number;
 }
 
 const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
-  images,
-  selectedImageInfo,
   fabricCanvas,
   annotationCount,
 }) => {
   const [showFullDetails, setShowFullDetails] = useState<boolean>(false);
+
+  const imageCtx = useContext(ImageContext)
 
   return (
     <div className="h-full p-4">
@@ -33,17 +31,17 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
         </label>
       </div>
 
-      {(images.length > 0 &&
-        selectedImageInfo !== null &&
-        selectedImageInfo?.imageIndex >= 0 &&
-        selectedImageInfo?.imageIndex <= images.length - 1) ? (
+      {(imageCtx !== undefined &&
+        imageCtx.images.length > 0 &&
+        imageCtx.selectedImageInfo !== null &&
+        imageCtx.selectedImageInfo?.imageIndex >= 0 &&
+        imageCtx.selectedImageInfo?.imageIndex <= imageCtx.images.length - 1) ? (
         <>
           <h2 className="text-white font-bold mb-2">
-            {images[selectedImageInfo.imageIndex].imageName}
+            {imageCtx.images[imageCtx.selectedImageInfo.imageIndex].imageName}
           </h2>
 
-          <AnnotationList 
-            selectedImageInfo={selectedImageInfo}
+          <AnnotationList
             showFullDetails={showFullDetails}
             fabricCanvas={fabricCanvas}
             annotationCount={annotationCount}

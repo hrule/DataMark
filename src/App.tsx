@@ -15,6 +15,7 @@ import SideBar from "./components/SideBar"
 import Export from "./components/Export"
 import SelectLabelPopup from "./components/SelectLabelPopup"
 import { getImagesPaginated } from "./helper/server"
+import { ImageContext } from "./helper/provider"
 
 function App() {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
@@ -192,11 +193,14 @@ function App() {
       <div className="flex h-full w-full">
         {/* Image Panel */}
         <div className="w-1/6 h-full bg-gray-600">
-          <ImageGallery 
-            images={images}
-            setImages={setImages}
-            setSelectedImageInfo={setSelectedImageInfo}
-          />
+          <ImageContext.Provider value={{
+              images,
+              setImages,
+              selectedImageInfo,
+              setSelectedImageInfo,
+            }}>
+            <ImageGallery/>
+          </ImageContext.Provider>
         </div>
         {/* Side Bar */}
         <SideBar/>
@@ -215,12 +219,14 @@ function App() {
             />
           </div>
           <div className="right-side-panel">
-            <ImageAnnotation
-              images={images}
-              selectedImageInfo={selectedImageInfo}
-              fabricCanvas={fabricCanvasRef.current}
-              annotationCount={annotationCount}
-              />
+            <ImageContext.Provider value={{
+              images,
+              setImages,
+              selectedImageInfo,
+              setSelectedImageInfo,
+            }}>
+              <ImageAnnotation fabricCanvas={fabricCanvasRef.current} annotationCount={annotationCount}/>
+            </ImageContext.Provider>
           </div>
           <div className="right-side-panel">
             <Export />

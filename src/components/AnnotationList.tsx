@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { Annotation, SelectedImage } from "../helper/types";
+import React, { useContext, useEffect, useState } from "react";
+import { Annotation } from "../helper/types";
 import { deleteAnnotationFromImage, getAnnotationsByImageName } from "../helper/server";
 import { removeRectangle } from "../helper/view";
+import { ImageContext } from "../helper/provider";
 
 interface AnnotationListProps {
-    selectedImageInfo: SelectedImage | null;
     showFullDetails: boolean;
     fabricCanvas: fabric.Canvas | null;
     annotationCount: number;
 }
 
 const AnnotationList: React.FC<AnnotationListProps> = ({ 
-    selectedImageInfo,
     showFullDetails,
     fabricCanvas,
     annotationCount
-    // onDelete
 }) => {
   const [selectedImageAnnotations, setSelectedImageAnnotations] = useState<Annotation[]>([])
+
+  const imageCtx = useContext(ImageContext)
   
   const handleDelete = (annotationId: string) => {
-    if (fabricCanvas && selectedImageInfo) {
+    if (fabricCanvas && imageCtx?.selectedImageInfo) {
       removeRectangle(fabricCanvas, annotationId)
-      deleteAnnotationFromImage(selectedImageInfo.image.imageName, annotationId)
+      deleteAnnotationFromImage(imageCtx.selectedImageInfo.image.imageName, annotationId)
       // Might be more efficient to filter out the annotation from the array, than refetch everything. 
       setSelectedImageAnnotations((prevAnnotations) =>
         prevAnnotations.filter((annotation) => annotation.annotationId !== annotationId)
@@ -32,13 +32,13 @@ const AnnotationList: React.FC<AnnotationListProps> = ({
 
   useEffect(() => {
     async function getSelectedImageAnnotations() {
-      if (selectedImageInfo) {
-        const annotations = await getAnnotationsByImageName(selectedImageInfo.image.imageName)
+      if (imageCtx?.selectedImageInfo) {
+        const annotations = await getAnnotationsByImageName(imageCtx.selectedImageInfo.image.imageName)
         setSelectedImageAnnotations(annotations);
       }
     }
     getSelectedImageAnnotations();
-  }, [annotationCount])
+  }, [annotationCount, imageCtx?.selectedImageInfo])
 
     return (
         <ul className="overflow-y-auto max-h-80 bg-gray-700 rounded p-2">
