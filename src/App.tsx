@@ -10,7 +10,7 @@ import { fabric } from 'fabric'
 import { addImage, initCanvas, resizeCanvas } from "./helper/view"
 import { Action, FabricMouseEvent, ImageFile, Key, Event, Mode, MouseDown, MouseMove, MouseUp, reduceState, SelectedImage, State, SwitchMode, NextImage, PrevImage } from "./helper/types"
 import { initialState } from "./helper/state"
-import { createFabricEventObservable, handleArrowKeyPress, handleDrawMode, handlePanMode } from "./helper/util"
+import { cleanupFabricCanvas, createFabricEventObservable, handleArrowKeyPress, handleDrawMode, handlePanMode } from "./helper/util"
 import SideBar from "./components/SideBar"
 import Export from "./components/Export"
 import SelectLabelPopup from "./components/SelectLabelPopup"
@@ -51,6 +51,7 @@ function App() {
   // const [isError, setIsError] = useState<boolean>(false);
 
   useEffect(() => {
+    console.log("App mount runs")
     const fabricCanvas = initCanvas('canvas')
     fabricCanvasRef.current = fabricCanvas
 
@@ -160,10 +161,7 @@ function App() {
 
     return () => {
       subscription.unsubscribe(); 
-      if (fabricCanvasRef.current) {
-        fabricCanvasRef.current.dispose();
-        fabricCanvasRef.current = null;
-      }
+      cleanupFabricCanvas(fabricCanvasRef)
     };
   }, [])
 

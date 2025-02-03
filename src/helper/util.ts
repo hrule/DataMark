@@ -4,7 +4,7 @@ import { fabric } from 'fabric'
 import { createRectangle } from "./view";
 import { postAnnotationToImage } from "./server";
 
-export { createFabricEventObservable, handlePanMode, handleDrawMode, handleArrowKeyPress, coordinateToScaled, scaledToCoordinates }
+export { createFabricEventObservable, handlePanMode, handleDrawMode, handleArrowKeyPress, coordinateToScaled, scaledToCoordinates, cleanupFabricCanvas }
 
 const createFabricEventObservable = (fabricCanvas: fabric.Canvas, eventName: string) => {
   return fromEventPattern(
@@ -222,4 +222,11 @@ const scaledToCoordinates = (
   const rectTop = imgTop + rect.top * imgScaledHeight;   
 
   return ({left: rectLeft, top: rectTop, width: rectWidth, height: rectHeight})
+}
+
+const cleanupFabricCanvas = (fabricCanvasRef: React.MutableRefObject<fabric.Canvas | null>) => {
+  if (fabricCanvasRef.current) {
+    fabricCanvasRef.current.dispose();
+    fabricCanvasRef.current = null;
+  }
 }

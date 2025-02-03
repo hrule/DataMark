@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, memo } from "react";
 import { ImageFile } from "../helper/types";
 import { getImagesPaginated, postImage } from "../helper/server";
 import ImageList from "./ImageList";
 import { ImageContext } from "../helper/provider";
 
 
-const ImageGallery = () => {
+const ImageGallery = memo(() => {
   console.log("Image Gallery rendered")
   const [page, setPage] = useState(0);
 
@@ -102,6 +102,6 @@ const ImageGallery = () => {
       </div>
     </div>
   );
-};
+})
 
 export default ImageGallery;
