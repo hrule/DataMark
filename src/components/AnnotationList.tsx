@@ -15,6 +15,8 @@ const AnnotationList: React.FC<AnnotationListProps> = ({
     fabricCanvas,
     annotationCount
 }) => {
+  console.log("Annotation List rendered")
+
   const [selectedImageAnnotations, setSelectedImageAnnotations] = useState<Annotation[]>([])
 
   const imageCtx = useContext(ImageContext)

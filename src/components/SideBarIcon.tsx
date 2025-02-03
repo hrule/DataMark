@@ -1,10 +1,12 @@
+import { memo } from "react"
+
 interface SideBarIconProps {
     icon: React.ReactNode,
     text?: string,
     id: string,
 }
 
-const SideBarIcon:React.FC<SideBarIconProps> = ({ icon, text = 'tooltip', id }) => {
+const SideBarIcon:React.FC<SideBarIconProps> = memo(({ icon, text = 'tooltip', id }) => {
     return (
         <div className="sidebar-icon group" id={id}> 
             { icon }
@@ -13,6 +15,6 @@ const SideBarIcon:React.FC<SideBarIconProps> = ({ icon, text = 'tooltip', id }) 
             </span>
         </div>
     );
-}
+})
 
 export default SideBarIcon

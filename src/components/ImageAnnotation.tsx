@@ -11,6 +11,7 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
   fabricCanvas,
   annotationCount,
 }) => {
+  console.log("ImageAnnotation rendered")
   const [showFullDetails, setShowFullDetails] = useState<boolean>(false);
 
   const imageCtx = useContext(ImageContext)

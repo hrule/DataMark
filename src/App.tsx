@@ -3,7 +3,7 @@ import ImageGallery from "./components/ImageGallery"
 import Labels from "./components/Labels"
 import ImageAnnotation from "./components/ImageAnnotation"
 // Libaries
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { filter, fromEvent, map, merge, Observable, scan } from "rxjs"
 import { fabric } from 'fabric'
 // Self-made
@@ -18,6 +18,8 @@ import { getImagesPaginated } from "./helper/server"
 import { ImageContext } from "./helper/provider"
 
 function App() {
+  console.log("App rendered")
+
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -37,6 +39,13 @@ function App() {
 
   const [annotationCount, setAnnotationCount] = useState<number>(0);
   const annotationCountRef = useRef(annotationCount)
+
+  const memoImageState = useMemo(() => ({
+    images, 
+    setImages,
+    selectedImageInfo,
+    setSelectedImageInfo
+  }), [images, selectedImageInfo])
 
   // Consider an error popup to let user know errors.
   // const [isError, setIsError] = useState<boolean>(false);
@@ -193,12 +202,7 @@ function App() {
       <div className="flex h-full w-full">
         {/* Image Panel */}
         <div className="w-1/6 h-full bg-gray-600">
-          <ImageContext.Provider value={{
-              images,
-              setImages,
-              selectedImageInfo,
-              setSelectedImageInfo,
-            }}>
+          <ImageContext.Provider value={memoImageState}>
             <ImageGallery/>
           </ImageContext.Provider>
         </div>
@@ -219,12 +223,7 @@ function App() {
             />
           </div>
           <div className="right-side-panel">
-            <ImageContext.Provider value={{
-              images,
-              setImages,
-              selectedImageInfo,
-              setSelectedImageInfo,
-            }}>
+            <ImageContext.Provider value={memoImageState}>
               <ImageAnnotation fabricCanvas={fabricCanvasRef.current} annotationCount={annotationCount}/>
             </ImageContext.Provider>
           </div>

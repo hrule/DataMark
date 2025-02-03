@@ -6,6 +6,7 @@ import { ImageContext } from "../helper/provider";
 
 
 const ImageGallery = () => {
+  console.log("Image Gallery rendered")
   const [page, setPage] = useState(0);
 
   const imageCtx = useContext(ImageContext)
@@ -30,10 +31,6 @@ const ImageGallery = () => {
       // In the case of changing file input, make selected image empty. 
       imageCtx.setSelectedImageInfo((prev) => prev ? null : prev);
     }
-  };
-
-  const handleImageClick = (image: ImageFile, index: number) => {
-    imageCtx?.setSelectedImageInfo({image: image, imageIndex: index})
   };
 
   const prevPage = async (currentPage: number) => {
@@ -86,8 +83,7 @@ const ImageGallery = () => {
       {/* Image List */}
       <div className="flex gap-8 h-5/6">
         <div className="w-full h-full">
-          {/* <ImageList images={images} imageClick={handleImageClick}/> */}
-          <ImageList imageClick={handleImageClick}/>
+          <ImageList/>
         </div>
       </div>
       {/* Buttons and Instructions */}
