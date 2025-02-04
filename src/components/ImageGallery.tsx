@@ -6,7 +6,6 @@ import { ImageContext } from "../helper/provider";
 
 
 const ImageGallery = memo(() => {
-  console.log("Image Gallery rendered")
   const [page, setPage] = useState(0);
 
   const imageCtx = useContext(ImageContext)

@@ -2,8 +2,6 @@ import { memo } from "react";
 import ExportButton from "./ExportButton";
 
 const Export = memo(() => {
-    console.log("Export rendered")
-
     const formats = ["yolov5", "yolov7", "yolov8"]
 
     return (

@@ -18,8 +18,6 @@ import { getImagesPaginated } from "./helper/server"
 import { ImageContext } from "./helper/provider"
 
 function App() {
-  console.log("App rendered")
-
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -51,7 +49,6 @@ function App() {
   // const [isError, setIsError] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log("App mount runs")
     const fabricCanvas = initCanvas('canvas')
     fabricCanvasRef.current = fabricCanvas
 

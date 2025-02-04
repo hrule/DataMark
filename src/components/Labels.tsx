@@ -14,7 +14,6 @@ const Labels:React.FC<LabelsProps> = memo(({
   selectedLabelIndex,
   setSelectedLabelIndex
 }) => {
-  console.log("Labels rendered")
   const [newLabel, setNewLabel] = useState<string>("");
 
   const addLabel = () => {

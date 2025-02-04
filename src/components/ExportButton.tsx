@@ -10,7 +10,6 @@ interface ExportButtonProps {
 }
 
 const ExportButton: React.FC<ExportButtonProps> = ({ format }) => {
-  console.log("Export Button rendered")
   const unannotatedCount = useRef(0)
   const [showModal, setShowModal] = useState(false)
 

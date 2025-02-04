@@ -3,7 +3,6 @@ import { ImageContext } from "../helper/provider"
 import { ImageFile } from "../helper/types"
 
 const ImageList = () => {
-    console.log("Image List rendered")
     const imageCtx = useContext(ImageContext)
 
     if (imageCtx !== undefined){

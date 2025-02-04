@@ -7,7 +7,6 @@ interface ConfirmationModalProps {
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ unannotatedCount, onConfirm, onCancel }) => {
-    console.log("Confirmation Modal rendered")
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-slate-700 p-6 rounded shadow-xl text-center">
