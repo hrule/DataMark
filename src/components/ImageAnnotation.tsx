@@ -1,17 +1,17 @@
-import { useContext, useState } from "react";
-import AnnotationList from "./AnnotationList";
-import { ImageContext } from "../helper/provider";
+import { useContext, useState } from "react"
+import AnnotationList from "./AnnotationList"
+import { ImageContext } from "../helper/provider"
 
 interface ImageAnnotationProps {
-  fabricCanvas: fabric.Canvas | null;
-  annotationCount: number;
+  fabricCanvas: fabric.Canvas | null
+  annotationCount: number
 }
 
 const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
   fabricCanvas,
   annotationCount,
 }) => {
-  const [showFullDetails, setShowFullDetails] = useState<boolean>(false);
+  const [showFullDetails, setShowFullDetails] = useState<boolean>(false)
 
   const imageCtx = useContext(ImageContext)
 
@@ -31,11 +31,11 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
         </label>
       </div>
 
-      {(imageCtx !== undefined &&
-        imageCtx.images.length > 0 &&
-        imageCtx.selectedImageInfo !== null &&
-        imageCtx.selectedImageInfo?.imageIndex >= 0 &&
-        imageCtx.selectedImageInfo?.imageIndex <= imageCtx.images.length - 1) ? (
+      {imageCtx !== undefined &&
+      imageCtx.images.length > 0 &&
+      imageCtx.selectedImageInfo !== null &&
+      imageCtx.selectedImageInfo?.imageIndex >= 0 &&
+      imageCtx.selectedImageInfo?.imageIndex <= imageCtx.images.length - 1 ? (
         <>
           <h2 className="text-white font-bold mb-2">
             {imageCtx.images[imageCtx.selectedImageInfo.imageIndex].imageName}
@@ -51,8 +51,7 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
         <></>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default ImageAnnotation;
-
+export default ImageAnnotation
