@@ -1,6 +1,6 @@
-import { Annotation, APIImageEntry, APILabel } from "./types";
+import { Annotation, APIImageEntry, APILabel, APIMaxAnnotationCount } from "./types";
 
-export { getData, postData, postAnnotationToImage, deleteAnnotationFromImage, getImagesPaginated, getAnnotationsByImageName, getAllData, deleteAllData, postLabel, getLabels, postImageFile }
+export { getData, postData, postAnnotationToImage, deleteAnnotationFromImage, getImagesPaginated, getAnnotationsByImageName, getAllData, deleteAllData, postLabel, getLabels, postImageFile, getMaxAnnotationCount }
 
 const BASE_URL = 'http://localhost:5173/api'; // Using a proxy
 
@@ -126,3 +126,7 @@ const postImageFile = async (file: File) => {
     throw error;
   }
 };
+
+const getMaxAnnotationCount = async () => {
+  return (await getData<APIMaxAnnotationCount>("/images/annotationCount")).highestAnnotationId
+}

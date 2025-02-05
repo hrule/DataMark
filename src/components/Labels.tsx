@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo } from "react";
-import { deleteAllData, getLabels, postLabel } from "../helper/server";
+import { getLabels, postLabel } from "../helper/server";
 
 interface LabelsProps {
   labels: string[],
@@ -40,9 +40,6 @@ const Labels:React.FC<LabelsProps> = memo(({
     <div className="p-4 h-full bg-gray-800 rounded-md flex flex-col">
       <div className="flex flex-row justify-between">
         <h2 className="panel-heading">Labels</h2>
-        <button className="bg-red-500 text-white rounded-md w-32" onClick={deleteAllData}>
-          Restart
-        </button>
       </div>
 
       {labels.length > 0 ? (

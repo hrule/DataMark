@@ -1,4 +1,4 @@
-export type {State, Action, FabricMouseEvent, ImageFile, Rectangle, Annotation, SelectedImage, Key, Event, APIImage, APIImageEntry, APILabel};
+export type {State, Action, FabricMouseEvent, ImageFile, Rectangle, Annotation, SelectedImage, Key, Event, APIImage, APIImageEntry, APILabel, APIMaxAnnotationCount};
 export {Mode, MouseMove, MouseDown, MouseUp, SwitchMode, NextImage, PrevImage, reduceState, UNSELECTABLE_IMAGE_PROPS}
 
 /** Constants */
@@ -66,6 +66,10 @@ type APIImageEntry = Readonly<{
 type APILabel = Readonly<{
     id: string
     labelName: string
+}>
+
+type APIMaxAnnotationCount = Readonly<{
+    highestAnnotationId: number
 }>
 
 /** State processing */

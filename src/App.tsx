@@ -16,6 +16,7 @@ import Export from "./components/Export"
 import SelectLabelPopup from "./components/SelectLabelPopup"
 import { getImagesPaginated } from "./helper/server"
 import { ImageContext } from "./helper/provider"
+import LoadStatePopup from "./components/LoadStatePopup"
 
 function App() {
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null)
@@ -38,6 +39,8 @@ function App() {
   const [annotationCount, setAnnotationCount] = useState<number>(0);
   const annotationCountRef = useRef(annotationCount)
 
+  const [showLoadPopup, setShowLoadPopup] = useState(false);
+
   const memoImageState = useMemo(() => ({
     images, 
     setImages,
@@ -47,6 +50,7 @@ function App() {
 
   // Consider an error popup to let user know errors.
   // const [isError, setIsError] = useState<boolean>(false);
+
 
   useEffect(() => {
     const fabricCanvas = initCanvas('canvas')
@@ -66,11 +70,7 @@ function App() {
       try {
         const firstPage = await getImagesPaginated(0)
         if (firstPage.length > 0) {
-          setImages(firstPage)
-          setSelectedImageInfo((_) => ({
-            image: firstPage[0],
-            imageIndex: 0
-          }))
+          setShowLoadPopup(true)
         }
       } catch (error) {
         return 
@@ -192,7 +192,14 @@ function App() {
   return (
     <div className="h-screen w-screen overflow-hidden">
       {/* Popups */}
-      {selectedLabelIndex === null ? <SelectLabelPopup/> : <></>}
+      {showLoadPopup && <LoadStatePopup 
+        setShowLoadPopup={setShowLoadPopup} 
+        setImages={setImages} 
+        setSelectedImageInfo={setSelectedImageInfo}
+        setLabels={setLabels}  
+        setAnnotationCount={setAnnotationCount}
+      />}
+      {selectedLabelIndex === null && showLoadPopup === false ? <SelectLabelPopup/> : <></>}
 
       <div className="flex h-full w-full">
         {/* Image Panel */}

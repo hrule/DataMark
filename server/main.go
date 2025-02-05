@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -183,6 +184,36 @@ func DeleteAnnotationFromImage(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Annotation deleted successfully"})
 }
 
+func GetMaxAnnotationCount(c *gin.Context) {
+	var images []Image
+
+	cursor, err := ImageCollection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch image entries"})
+		return
+	}
+	defer cursor.Close(context.TODO())
+
+	if err := cursor.All(context.TODO(), &images); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode image entries"})
+		return
+	}
+
+	highestAnnotationId := 0
+
+	for _, image := range images {
+		for _, annotation := range image.Annotations {
+			idStr := strings.TrimPrefix(annotation.AnnotationId, "annotation")
+			id, err := strconv.Atoi(idStr)
+			if err == nil && id > highestAnnotationId {
+				highestAnnotationId = id
+			}
+		}
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"highestAnnotationId": highestAnnotationId})
+}
+
 // ============================== Label Handlers ==============================
 func CreateLabel(c *gin.Context) {
 	var newLabel Label
@@ -267,15 +298,6 @@ func UploadImageFile(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
 	}
-
-	// Wait until the file is fully saved and accessible
-	// maxRetries := 10
-	// for i := 0; i < maxRetries; i++ {
-	// 	if _, err := os.Open(filePath); err == nil {
-	// 		break
-	// 	}
-	// 	time.Sleep(100 * time.Millisecond) // Small delay before retrying
-	// }
 
 	// Ensure the file actually exists before proceeding
 	// Countermeasure against images not being available before serving.
@@ -385,6 +407,7 @@ func main() {
 	router.GET("/images", GetImages)
 	router.GET("/images/paginated", GetImagesPaginated)
 	router.GET("/images/:imageName/annotations", GetAnnotationsByImageName)
+	router.GET("/images/annotationCount", GetMaxAnnotationCount)
 	// POST
 	router.POST("/images", CreateImage)
 	router.POST("/images/:imageName/annotations", AddAnnotationToImage)
