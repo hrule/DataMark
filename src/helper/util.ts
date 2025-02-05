@@ -49,7 +49,18 @@ const getPanOffset = (canvas: fabric.Canvas) => {
   };
 };
 
-const dimCanvas = (canvas: fabric.Canvas, x1: number, y1: number, x2: number, y2: number) => {
+/**
+ * Given the start and end mouse points in (x,y) coordinate form, calculate the rectangle dimensions.
+ * Take into account pan offset of canvas.
+ * Ensure the rectangle can be drawn no matter the difference between the two points. 
+ * @param canvas 
+ * @param x1 
+ * @param y1 
+ * @param x2 
+ * @param y2 
+ * @returns 
+ */
+const rectFromCoordinates = (canvas: fabric.Canvas, x1: number, y1: number, x2: number, y2: number): Rectangle => {
   const panOffset = getPanOffset(canvas);
 
   // Adjust mouse coordinates (x2, y2) by pan offset
@@ -61,6 +72,20 @@ const dimCanvas = (canvas: fabric.Canvas, x1: number, y1: number, x2: number, y2
   const width = Math.max(x1, adjustedX2) - left; 
   const height = Math.max(y1, adjustedY2) - top; 
 
+  return {
+    left: left,
+    top: top,
+    width: width,
+    height: height
+  }
+}
+
+/**
+ * Dim the canvas, except for an opaque rectangle showing the result of the users annotation.
+ * @param canvas 
+ * @param rect The rectangle that will be added to the canvas upon the users mouse release.
+ */
+const dimCanvas = (canvas: fabric.Canvas, rect: Rectangle) => {
   const dimRect = new fabric.Rect({
     name: 'temporary',
     left: 0,
@@ -74,10 +99,7 @@ const dimCanvas = (canvas: fabric.Canvas, x1: number, y1: number, x2: number, y2
 
   const clearRect = new fabric.Rect({
     name: 'temporary',
-    left: left,
-    top: top,
-    width: width,
-    height: height,
+    ...rect,
     fill: 'rgba(255, 255, 255, 0.5)', 
     selectable: false,
     evented: false,
@@ -112,9 +134,14 @@ const handleDrawMode = (
   addXLine(fabricCanvas, state.mouseX)
   addYLine(fabricCanvas, state.mouseY)
 
+  const rectangleToRender = 
+    rectFromCoordinates(
+      fabricCanvas, state.rectStartX, state.rectStartY, state.mouseX, state.mouseY
+    )
+
   if (state.mouseDown && selectedFabricImage){
     undimCanvas(fabricCanvas)
-    dimCanvas(fabricCanvas, state.rectStartX, state.rectStartY, state.mouseX, state.mouseY)
+    dimCanvas(fabricCanvas, rectangleToRender)
   }
   
   if (state.mouseUp){
@@ -123,13 +150,6 @@ const handleDrawMode = (
 
   if (state.renderRectangle && selectedFabricImage && selectedImageInfo){
     const fabricImage = selectedFabricImage
-
-    const rectangleToRender: Rectangle = {
-      left: state.rectStartX,
-      top: state.rectStartY,
-      width: state.rectEndX - state.rectStartX,
-      height: state.rectEndY - state.rectStartY,
-    }
 
     const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
 

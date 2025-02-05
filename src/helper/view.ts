@@ -37,10 +37,10 @@ const createRectangle = (canvas: fabric.Canvas, rect: Rectangle, id: string) => 
   const fabricRect = new fabric.Rect({
     ...rect,
     fill: "green",
-    borderColor: "red", 
+    // borderColor: "red", 
     opacity: 0.2, 
-    hasRotatingPoint: false,
-    lockRotation: true,
+    // hasRotatingPoint: false,
+    // lockRotation: true,
     hasControls: false,
     selectable: false,
     name: id // Will use name for now, because can't use id, makes removing hard (typescript)
