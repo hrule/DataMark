@@ -34,10 +34,12 @@ interface FabricMouseEvent {
     isClick: boolean; 
 }
 
-type ImageFile = {
+type ImageFile = Readonly<{
     imageName: string;
+    // ImageURL is currently not in use. 
+    // Cloud services, and other situations may result in its requirement.
     imageURL: string;
-}
+}>
 
 type Rectangle = Readonly<{
     left: number;
@@ -57,14 +59,14 @@ type APIImage = ImageFile & Readonly<{
     annotations: Annotation[];
 }>
 
-type APIImageEntry = {
+type APIImageEntry = Readonly<{
     id: string
-} & APIImage
+}> & APIImage
 
-type APILabel = {
+type APILabel = Readonly<{
     id: string
     labelName: string
-}
+}>
 
 /** State processing */
 

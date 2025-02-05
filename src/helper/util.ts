@@ -4,7 +4,7 @@ import { fabric } from 'fabric'
 import { createRectangle } from "./view";
 import { postAnnotationToImage } from "./server";
 
-export { createFabricEventObservable, handlePanMode, handleDrawMode, handleArrowKeyPress, coordinateToScaled, scaledToCoordinates, cleanupFabricCanvas }
+export { createFabricEventObservable, handlePanMode, handleDrawMode, handleArrowKeyPress, coordinateToScaled, scaledToCoordinates, cleanupFabricCanvas, getImageURL }
 
 const createFabricEventObservable = (fabricCanvas: fabric.Canvas, eventName: string) => {
   return fromEventPattern(
@@ -230,3 +230,9 @@ const cleanupFabricCanvas = (fabricCanvasRef: React.MutableRefObject<fabric.Canv
     fabricCanvasRef.current = null;
   }
 }
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+
+const getImageURL = (imageName: string) => {
+  return `${BASE_URL}/uploads/${encodeURIComponent(imageName)}`;
+};

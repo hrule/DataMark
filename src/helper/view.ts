@@ -1,6 +1,6 @@
 import { fabric } from 'fabric'
 import { Annotation, Rectangle, SelectedImage, UNSELECTABLE_IMAGE_PROPS } from './types'
-import { scaledToCoordinates } from './util'
+import { getImageURL, scaledToCoordinates } from './util'
 import { getAnnotationsByImageName } from './server'
 export { setBackground, initCanvas, resizeCanvas, clearCanvas, createRectangle, createRectangleFromAnnotation, addImage, removeRectangle }
 
@@ -81,7 +81,8 @@ const addImage = async (
     selectedImageInfo: SelectedImage
 ) => {
     try {
-      const img = await loadImage(selectedImageInfo.image.imageURL)
+      // const img = await loadImage(selectedImageInfo.image.imageURL)
+      const img = await loadImage(getImageURL(selectedImageInfo.image.imageName))
 
       canvas.clear()
 

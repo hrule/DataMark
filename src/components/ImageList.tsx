@@ -1,6 +1,10 @@
 import { useContext } from "react"
 import { ImageContext } from "../helper/provider"
 import { ImageFile } from "../helper/types"
+import { getImageURL } from "../helper/util"
+
+
+
 
 const ImageList = () => {
     const imageCtx = useContext(ImageContext)
@@ -35,7 +39,8 @@ const ImageList = () => {
                     onClick={() => handleImageClick(image, index)}
                 >
                     <img
-                        src={image.imageURL}
+                        // src={image.imageURL}
+                        src={getImageURL(image.imageName)}
                         alt={image.imageName}
                         className="w-12 h-12 object-cover rounded-md"
                     />

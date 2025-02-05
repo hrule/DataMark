@@ -1,6 +1,6 @@
-import { Annotation, APIImage, APIImageEntry, APILabel } from "./types";
+import { Annotation, APIImageEntry, APILabel } from "./types";
 
-export { getData, postData, postImage, postAnnotationToImage, deleteAnnotationFromImage, getImagesPaginated, getAnnotationsByImageName, getAllData, deleteAllData, postLabel, getLabels }
+export { getData, postData, postAnnotationToImage, deleteAnnotationFromImage, getImagesPaginated, getAnnotationsByImageName, getAllData, deleteAllData, postLabel, getLabels, postImageFile }
 
 const BASE_URL = 'http://localhost:5173/api'; // Using a proxy
 
@@ -65,9 +65,10 @@ const deleteData = async (endpoint: string) => {
   }
 }
 
-const postImage = (imageFile: APIImage) => {
-  postData("/images", JSON.stringify(imageFile))
-}
+// Deprecated by current implementation
+// const postImage = (imageFile: APIImage) => {
+//   postData("/images", JSON.stringify(imageFile))
+// }
 
 const postAnnotationToImage = (imageName: string, annotation: Annotation) => {
   postData(`/images/${imageName}/annotations`, JSON.stringify(annotation))
@@ -94,6 +95,7 @@ const getAllData = async () => {
 const deleteAllData = () => {
   deleteData("/images")
   deleteData("/labels")
+  deleteData("/uploads")
 }
 
 const postLabel = (labelName: string) => {
@@ -103,3 +105,24 @@ const postLabel = (labelName: string) => {
 const getLabels = async () => {
   return await getData<APILabel[]>("/labels")
 }
+
+const postImageFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    const response = await fetch(`${BASE_URL}/upload`, {
+      method: "POST",
+      body: formData, 
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("File upload failed:", error);
+    throw error;
+  }
+};

@@ -14,6 +14,7 @@ dist-ssr
 
 test/
 test-images/
+uploads/
 .env
 
 # Editor directories and files
