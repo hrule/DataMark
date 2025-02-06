@@ -16,7 +16,7 @@ const ImageAnnotation: React.FC<ImageAnnotationProps> = ({
   const imageCtx = useContext(ImageContext)
 
   return (
-    <div className="h-full p-4">
+    <div className="h-full p-4 overflow-y-auto hide-scrollbar">
       <div className="flex justify-between items-center">
         <h2 className="panel-heading">Annotations</h2>
         {/* Switch to show details or not. */}

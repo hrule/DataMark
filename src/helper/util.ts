@@ -1,7 +1,7 @@
 import { fromEventPattern } from "rxjs"
 import { Annotation, ImageFile, Rectangle, SelectedImage, State } from "./types"
 import { fabric } from "fabric"
-import { createRectangle } from "./view"
+import { renderAnnotation } from "./view"
 import { postAnnotationToImage } from "./server"
 
 export {
@@ -138,7 +138,7 @@ const undimCanvas = (canvas: fabric.Canvas) => {
   canvas.requestRenderAll()
 }
 
-const handleDrawMode = (
+const handleDrawMode = async (
   state: State,
   fabricCanvas: fabric.Canvas,
   selectedFabricImage: fabric.Image | null,
@@ -146,6 +146,7 @@ const handleDrawMode = (
   selectedLabelIndex: number,
   annotationCount: number,
   setAnnotationCount: React.Dispatch<React.SetStateAction<number>>,
+  labels: string[],
 ) => {
   fabricCanvas.setCursor("crosshair")
 
@@ -153,7 +154,7 @@ const handleDrawMode = (
   addXLine(fabricCanvas, state.mouseX)
   addYLine(fabricCanvas, state.mouseY)
 
-  const rectangleToRender = rectFromCoordinates(
+  const rectToRender = rectFromCoordinates(
     fabricCanvas,
     state.rectStartX,
     state.rectStartY,
@@ -163,7 +164,7 @@ const handleDrawMode = (
 
   if (state.mouseDown && selectedFabricImage) {
     undimCanvas(fabricCanvas)
-    dimCanvas(fabricCanvas, rectangleToRender)
+    dimCanvas(fabricCanvas, rectToRender)
   }
 
   if (state.mouseUp) {
@@ -173,7 +174,7 @@ const handleDrawMode = (
   if (state.renderRectangle && selectedFabricImage && selectedImageInfo) {
     const fabricImage = selectedFabricImage
 
-    const scaledRect = coordinateToScaled(fabricImage, rectangleToRender)
+    const scaledRect = coordinateToScaled(fabricImage, rectToRender)
 
     const newAnnotationId = `annotation${annotationCount}`
 
@@ -183,11 +184,13 @@ const handleDrawMode = (
       ...scaledRect,
     }
 
-    createRectangle(fabricCanvas, rectangleToRender, newAnnotationId)
+    // createRectangle(fabricCanvas, rectangleToRender, newAnnotationId)
+    // createLabelText(fabricCanvas, rectangleToRender, labels[selectedLabelIndex], newAnnotationId)
+    renderAnnotation(fabricCanvas, rectToRender, labels[selectedLabelIndex], newAnnotationId)
 
+    await postAnnotationToImage(selectedImageInfo.image.imageName, newAnnotation)
+    
     setAnnotationCount((prev) => prev + 1)
-
-    postAnnotationToImage(selectedImageInfo.image.imageName, newAnnotation)
   }
 }
 

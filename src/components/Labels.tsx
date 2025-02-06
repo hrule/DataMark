@@ -33,11 +33,9 @@ const Labels: React.FC<LabelsProps> = memo(
     }, [])
 
     return (
-      <div className="p-4 h-full bg-gray-800 rounded-md flex flex-col">
-        <div className="flex flex-row justify-between">
-          <h2 className="panel-heading">Labels</h2>
-        </div>
-
+      <div className="p-4 h-full bg-gray-800 rounded-md flex flex-col overflow-y-auto">
+        <h2 className="panel-heading">Labels</h2>
+  
         {labels.length > 0 ? (
           <ul className="mb-4 overflow-y-auto hide-scrollbar">
             {labels.map((label, index) => (

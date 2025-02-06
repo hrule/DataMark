@@ -1,9 +1,9 @@
 import { fabric } from "fabric"
 import {
-  Annotation,
   Rectangle,
   SelectedImage,
   UNSELECTABLE_IMAGE_PROPS,
+  UNSELECTABLE_OBJECT_PROPS,
 } from "./types"
 import { getImageURL, scaledToCoordinates } from "./util"
 import { getAnnotationsByImageName } from "./server"
@@ -13,9 +13,10 @@ export {
   resizeCanvas,
   clearCanvas,
   createRectangle,
-  createRectangleFromAnnotation,
   addImage,
-  removeRectangle,
+  removeAnnotation,
+  createLabelText,
+  renderAnnotation,
 }
 
 const setBackground = (url: string, canvas: fabric.Canvas) => {
@@ -55,32 +56,60 @@ const createRectangle = (
   const fabricRect = new fabric.Rect({
     ...rect,
     fill: "green",
-    // borderColor: "red",
     opacity: 0.2,
-    // hasRotatingPoint: false,
-    // lockRotation: true,
-    hasControls: false,
-    selectable: false,
-    name: id, // Will use name for now, because can't use id, makes removing hard (typescript)
+    ...UNSELECTABLE_OBJECT_PROPS,
+    // Will use name for now, because can't use id, makes removing hard (typescript)
+    name: id, 
   })
   // fabricRect.set('id', )
   canvas.add(fabricRect)
   canvas.requestRenderAll()
 }
 
-const createRectangleFromAnnotation = (
-  canvas: fabric.Canvas | null,
-  img: fabric.Image | null,
-  annotation: Annotation,
-) => {
-  if (canvas && img) {
-    const scaledRect = annotation as Rectangle
-    const rectCoordinates = scaledToCoordinates(img, scaledRect)
-    createRectangle(canvas, rectCoordinates, annotation.annotationId)
-  }
+const createLabelText = (fabricCanvas: fabric.Canvas, rect: Rectangle, label: string, id: string) => {
+  // Make text and background objects has same name as corresponding rectangle. 
+  // Easier to find and delete.
+  const text = new fabric.Text(label, {
+    left: rect.left + 5, 
+    top: rect.top - 5, 
+    fontSize: 24,
+    textAlign: 'left', 
+    fill: 'white', 
+    originX: 'left', 
+    originY: 'bottom',
+    ...UNSELECTABLE_OBJECT_PROPS,
+    name: id,
+  });
+
+  const textWidth = text.width ?? 0;
+
+  const background = new fabric.Rect({
+    left: rect.left, 
+    top: rect.top - 35, 
+    width: textWidth + 10, 
+    height: 35, 
+    fill: 'green', 
+    opacity: 0.75,
+    ...UNSELECTABLE_OBJECT_PROPS,
+    name: id,
+  });
+
+  fabricCanvas.add(background);
+  fabricCanvas.add(text);
+};
+
+/**
+ * Render the bounding box and label of the annotation to the fabric.js canvas.
+ * @param canvas 
+ * @param rect 
+ * @param label 
+ */
+const renderAnnotation = (canvas: fabric.Canvas, rect: Rectangle, label: string, id: string) => {
+  createRectangle(canvas, rect, id)
+  createLabelText(canvas, rect, label, id)
 }
 
-const removeRectangle = (canvas: fabric.Canvas, id: string) => {
+const removeAnnotation = (canvas: fabric.Canvas, id: string) => {
   canvas.getObjects().forEach((o) => {
     if (o.name === id) {
       canvas.remove(o)
@@ -103,9 +132,9 @@ const addImage = async (
     React.SetStateAction<fabric.Image | null>
   >,
   selectedImageInfo: SelectedImage,
+  labels: string[],
 ) => {
   try {
-    // const img = await loadImage(selectedImageInfo.image.imageURL)
     const img = await loadImage(getImageURL(selectedImageInfo.image.imageName))
 
     canvas.clear()
@@ -136,7 +165,10 @@ const addImage = async (
         selectedImageInfo.image.imageName,
       )
       imageAnnotations.forEach((annotation) => {
-        createRectangleFromAnnotation(canvas, img, annotation)
+        // Annotations are scaled. Bring them back to coordinates, then render.
+        const scaledRect = annotation as Rectangle // Use ts downcasting
+        const coordinateRect = scaledToCoordinates(img, scaledRect)
+        renderAnnotation(canvas, coordinateRect, labels[annotation.labelIndex], annotation.annotationId)
       })
 
       canvas.requestRenderAll()

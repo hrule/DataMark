@@ -6,7 +6,7 @@ const Export = memo(() => {
   const formats = ["yolov5", "yolov7", "yolov8"]
 
   return (
-    <div className="h-full bg-gray-800 text-white p-4 rounded flex flex-col justify-between">
+    <div className="h-full bg-gray-800 text-white p-4 rounded flex flex-col justify-between overflow-y-auto">
       <div>
         <h2 className="panel-heading">Select Export Format</h2>
         <div className="space-y-2">

@@ -48,6 +48,7 @@ function App() {
   const imagesRef = useRef<ImageFile[]>(images)
 
   const [labels, setLabels] = useState<string[]>([])
+  const labelsRef = useRef<string[]>(labels)
 
   const [selectedLabelIndex, setSelectedLabelIndex] = useState<number | null>(
     null,
@@ -198,6 +199,7 @@ function App() {
               selectedLabelIndexRef.current,
               annotationCountRef.current,
               setAnnotationCount,
+              labelsRef.current,
             )
             break
           case Mode.Pan:
@@ -228,6 +230,7 @@ function App() {
         fabricCanvasRef.current,
         setSelectedFabricImage,
         selectedImageInfo,
+        labels,
       )
     }
   }, [selectedImageInfo])
@@ -247,6 +250,10 @@ function App() {
   useEffect(() => {
     annotationCountRef.current = annotationCount
   }, [annotationCount])
+
+  useEffect(() => {
+    labelsRef.current = labels
+  }, [labels])
 
   return (
     <div className="h-screen w-screen overflow-hidden">

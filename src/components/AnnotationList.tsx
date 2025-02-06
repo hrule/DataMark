@@ -4,7 +4,7 @@ import {
   deleteAnnotationFromImage,
   getAnnotationsByImageName,
 } from "../helper/server"
-import { removeRectangle } from "../helper/view"
+import { removeAnnotation } from "../helper/view"
 import { ImageContext } from "../helper/provider"
 
 interface AnnotationListProps {
@@ -26,7 +26,7 @@ const AnnotationList: React.FC<AnnotationListProps> = ({
 
   const handleDelete = (annotationId: string) => {
     if (fabricCanvas && imageCtx?.selectedImageInfo) {
-      removeRectangle(fabricCanvas, annotationId)
+      removeAnnotation(fabricCanvas, annotationId)
       deleteAnnotationFromImage(
         imageCtx.selectedImageInfo.image.imageName,
         annotationId,

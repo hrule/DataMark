@@ -23,6 +23,7 @@ export {
   PrevImage,
   reduceState,
   UNSELECTABLE_IMAGE_PROPS,
+  UNSELECTABLE_OBJECT_PROPS,
 }
 
 /** Constants */
@@ -36,6 +37,13 @@ const UNSELECTABLE_IMAGE_PROPS = {
   lockScalingY: true,
   lockRotation: true,
   evented: false,
+} as const
+
+const UNSELECTABLE_OBJECT_PROPS = {
+  hasRotatingPoint: false,
+  lockRotation: true,
+  hasControls: false,
+  selectable: false,
 } as const
 
 /** User input */

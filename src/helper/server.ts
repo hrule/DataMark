@@ -88,8 +88,8 @@ const deleteData = async (endpoint: string) => {
 //   postData("/images", JSON.stringify(imageFile))
 // }
 
-const postAnnotationToImage = (imageName: string, annotation: Annotation) => {
-  postData(`/images/${imageName}/annotations`, JSON.stringify(annotation))
+const postAnnotationToImage = async (imageName: string, annotation: Annotation) => {
+  await postData(`/images/${imageName}/annotations`, JSON.stringify(annotation))
 }
 
 const deleteAnnotationFromImage = (imageName: string, annotationId: string) => {
